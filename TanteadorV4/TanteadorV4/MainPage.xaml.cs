@@ -74,40 +74,82 @@ namespace TanteadorV4
     public class DispositiveStyle
     {
         private String Dispositivo;
-        private String _font_1;
-        private String _font_2;
 
-        public String font_1
+        private String FontFamily_subDirectorio = "";
+        private Double FontSizeRelacion = 1;
+
+        private String _fontFamily_1;
+        private String _fontFamily_2;
+
+        private Double _fontSize_1;
+        private Double _fontSize_2;
+
+
+        public Color BackgroundColor { set; get; }
+        public String fontFamily_1
         {
             set
             {
-                _font_1 = value;
+                _fontFamily_1 = value;
             }
             get
             {
-                return "Assets/" + _font_1;
+                return FontFamily_subDirectorio + _fontFamily_1;
             }
         }
-        public String font_2
+        public String fontFamily_2
         {
             set
             {
-                _font_2 = value;
+                _fontFamily_2 = value;
             }
             get
             {
-                return "Assets/" + _font_2;
+                return FontFamily_subDirectorio + _fontFamily_2;
             }
         }
+
+        public Double fontSize_1
+        {
+            set
+            {
+                _fontSize_1 = value;
+            }
+            get
+            {
+                return _fontSize_1 * FontSizeRelacion;
+            }
+        }
+
+        public Double fontSize_2
+        {
+            set
+            {
+                _fontSize_2 = value;
+            }
+            get
+            {
+                return _fontSize_2 * FontSizeRelacion;
+            }
+        }
+
+
 
         public DispositiveStyle()
         {
             if (Device.RuntimePlatform == Device.Android)
+            {
                 Dispositivo = "Android";
+            }
 
             if (Device.RuntimePlatform == Device.UWP)
+            {
                 Dispositivo = "UWP";
+                FontFamily_subDirectorio = "Assets/";
+                FontSizeRelacion = 2;
+            }
         }
+
     }
 
     public partial class MainPage : ContentPage
@@ -118,10 +160,6 @@ namespace TanteadorV4
         private int IndicePartido = 0;
         private string[] Desc_Partidos = new string[] { "PARTIDO", "REVANCHA", "BUENO" };
 
-        private Color _BackgroundColor = Color.Red;
-        private String font_roboclone;
-        private String font_StoryBook;
-
 
         public MainPage()
         {
@@ -131,8 +169,13 @@ namespace TanteadorV4
 
             DispositiveStyle DStyle = new DispositiveStyle();
 
-            DStyle.font_1 = "roboclonestraight3d.ttf#Robo-Clone Straight 3D";
-            DStyle.font_2 = "Storyboo.TTF#Storybook";
+            DStyle.fontFamily_1 = "roboclonestraight3d.ttf#Robo-Clone Straight 3D";
+            DStyle.fontFamily_2 = "Storyboo.TTF#Storybook";
+
+            DStyle.fontSize_1 = 48;
+            DStyle.fontSize_2 = 18;
+
+            DStyle.BackgroundColor = Color.Red;
 
             var tapGestureRecognizer1 = new TapGestureRecognizer();
             var tapGestureRecognizer2 = new TapGestureRecognizer();
@@ -148,24 +191,30 @@ namespace TanteadorV4
             image1.GestureRecognizers.Add(tapGestureRecognizer1);
             image2.GestureRecognizers.Add(tapGestureRecognizer2);
 
+            SubTitulo1.BackgroundColor = DStyle.BackgroundColor;
+            SubTitulo2.BackgroundColor = DStyle.BackgroundColor;
+            gTitulo.BackgroundColor = DStyle.BackgroundColor;
+            Columna1.BackgroundColor = DStyle.BackgroundColor;
+            Columna2.BackgroundColor = DStyle.BackgroundColor;
+            Columna3.BackgroundColor = DStyle.BackgroundColor;
+            Nombre1.BackgroundColor = DStyle.BackgroundColor;
+            Nombre2.BackgroundColor = DStyle.BackgroundColor;
+
 
             Reloj.Text = "00:00:00";
             Reloj_Timer = new Timer(TimeSpan.FromSeconds(2), () => Reloj.Text = Reloj_Timer.GetMinutos());
 
-            Reloj.FontSize = 48;
-            Reloj.FontFamily = DStyle.font_1;
+            Reloj.FontSize = DStyle.fontSize_1;
+            Reloj.FontFamily = DStyle.fontFamily_1;
 
-            Numero1.FontFamily = DStyle.font_1;
-
-
-            Numero2.FontFamily = DStyle.font_1;
-            Nombre1.FontFamily = DStyle.font_2;
+            Numero1.FontFamily = DStyle.fontFamily_1;
 
 
-            
-            
-            Numero1.FontSize = 48;
-            Numero2.FontSize = 48;
+            Numero2.FontFamily = DStyle.fontFamily_1;
+            Nombre1.FontFamily = DStyle.fontFamily_2;
+
+            Numero1.FontSize = DStyle.fontSize_1;
+            Numero2.FontSize = DStyle.fontSize_1;
             Numero1.BackgroundColor = Color.Black;
             Numero2.BackgroundColor = Color.Black;
             Numero1.TextColor = Color.White;
@@ -178,16 +227,13 @@ namespace TanteadorV4
             Numero2_Valor = 0;
 
             SubTitulo1.Text = "Torneo";
-            SubTitulo1.FontFamily = font_StoryBook;
+            SubTitulo1.FontFamily = DStyle.fontFamily_1;
             SubTitulo1.FontSize = 48;
             SubTitulo2.Text = "Ramallo";
-            SubTitulo2.FontFamily = font_StoryBook;
+            SubTitulo2.FontFamily = DStyle.fontFamily_2;
             SubTitulo2.FontSize = 48;
 
-            gTitulo.BackgroundColor = _BackgroundColor;
-            Columna1.BackgroundColor = _BackgroundColor;
-            Columna2.BackgroundColor = _BackgroundColor;
-            Columna3.BackgroundColor = _BackgroundColor;
+
         }
 
         

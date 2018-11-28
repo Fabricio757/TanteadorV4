@@ -17,13 +17,13 @@
         </Grid.ColumnDefinitions>
 
 
-        <Grid x:Name="gTitulo" Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="0">
+        <Grid x:Name="gTitulo" Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="0" Padding="0" RowSpacing="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="0.6*" />
                 <RowDefinition Height="0.4*" />
             </Grid.RowDefinitions>
             <Entry x:Name="SubTitulo1" Grid.Row="0"  HorizontalTextAlignment="Center"></Entry>
-            <Entry x:Name="SubTitulo2" Grid.Row="1" HorizontalTextAlignment="Center"></Entry>
+            <Entry x:Name="SubTitulo2" Grid.Row="1" HorizontalTextAlignment="Center" Scale="1"></Entry>
         </Grid>
 
         <Grid x:Name="Columna1" Grid.Column="0" Grid.Row="1" >
@@ -72,18 +72,20 @@
                     <ColumnDefinition Width="0.30*" />
                     <ColumnDefinition Width="0.35*" />
                 </Grid.ColumnDefinitions>
+                
                 <Grid Grid.Column="0" x:Name="GrillaNumero1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="0.40*" />
                         <RowDefinition Height="0.60*" />
                     </Grid.RowDefinitions>
-                    <Label x:Name="Numero1" Grid.Row="0"  XAlign="Center">
+                    <Label x:Name="Numero1" Grid.Row="0"  XAlign="Center" YAlign="Center">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="Numero1_Tapped" />
                             <TapGestureRecognizer Tapped="Numero1_Tapped2" NumberOfTapsRequired="2" />
                         </Label.GestureRecognizers>
                     </Label>
                 </Grid>
+                
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="0.20*" />
@@ -94,18 +96,26 @@
                             <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"></PanGestureRecognizer>
                         </Label.GestureRecognizers>
                     </Label>
-                    <Image x:Name="Logo" Grid.Row="1" BackgroundColor="Red">
+                    <Image x:Name="Logo" Grid.Row="1" BackgroundColor="DarkRed">
                         <Image.GestureRecognizers>
                             <TapGestureRecognizer Tapped="Logo_Tapped" />                                                   
                         </Image.GestureRecognizers>
                     </Image>
                 </Grid>
-                <Label x:Name="Numero2" Grid.Column="2"  XAlign="Center">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="Numero2_Tapped" />
-                        <TapGestureRecognizer Tapped="Numero2_Tapped2" NumberOfTapsRequired="2" />
-                    </Label.GestureRecognizers>
-                </Label>
+
+                <Grid Grid.Column="2" x:Name="GrillaNumero2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.40*" />
+                        <RowDefinition Height="0.60*" />
+                    </Grid.RowDefinitions>
+                    <Label x:Name="Numero2" Grid.Row="0"  XAlign="Center" YAlign="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="Numero2_Tapped" />
+                            <TapGestureRecognizer Tapped="Numero2_Tapped2" NumberOfTapsRequired="2" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
+
             </Grid>
 
         </Grid>
