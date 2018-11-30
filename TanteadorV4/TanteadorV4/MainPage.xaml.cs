@@ -158,6 +158,7 @@ namespace TanteadorV4
         private int Numero1_Valor = 0;
         private int Numero2_Valor = 0;
         private int IndicePartido = 0;
+        private Object gSender;
         private string[] Desc_Partidos = new string[] { "PARTIDO", "REVANCHA", "BUENO" };
 
 
@@ -190,6 +191,18 @@ namespace TanteadorV4
 
             image1.GestureRecognizers.Add(tapGestureRecognizer1);
             image2.GestureRecognizers.Add(tapGestureRecognizer2);
+
+            var tapGestureRecognizerIG = new TapGestureRecognizer();
+
+            tapGestureRecognizerIG.Tapped += (s, e) => {
+                StackL_GeneralInput.IsVisible = true;
+                gSender = s;
+            };
+            SubTitulo1.GestureRecognizers.Add(tapGestureRecognizerIG);
+            SubTitulo2.GestureRecognizers.Add(tapGestureRecognizerIG);
+            Nombre1.GestureRecognizers.Add(tapGestureRecognizerIG);
+            Nombre2.GestureRecognizers.Add(tapGestureRecognizerIG);
+
 
             SubTitulo1.BackgroundColor = DStyle.BackgroundColor;
             SubTitulo2.BackgroundColor = DStyle.BackgroundColor;
@@ -227,12 +240,17 @@ namespace TanteadorV4
             Numero2_Valor = 0;
 
             SubTitulo1.Text = "Torneo";
-            SubTitulo1.FontFamily = DStyle.fontFamily_1;
+            SubTitulo1.FontFamily = DStyle.fontFamily_2;
             SubTitulo1.FontSize = 48;
+            SubTitulo1.TextColor = Color.White;
+
             SubTitulo2.Text = "Ramallo";
             SubTitulo2.FontFamily = DStyle.fontFamily_2;
             SubTitulo2.FontSize = 48;
+            SubTitulo2.TextColor = Color.White;
 
+            Nombre1.TextColor = Color.White;
+            Nombre2.TextColor = Color.White;
 
         }
 
@@ -367,6 +385,22 @@ namespace TanteadorV4
                 IndicePartido--;
 
             Partido.Text = Desc_Partidos[IndicePartido];
+        }
+
+        private void l_Start_Tapped(object sender, EventArgs e)
+        {
+
+        }
+
+        private void b_Ok_GeneralInput_Clicked(object sender, EventArgs e)
+        {
+            ((Label)gSender).Text = GeneralInput.Text;
+            StackL_GeneralInput.IsVisible = false;
+        }
+
+        private void b_Cancel_GeneralInput_Clicked(object sender, EventArgs e)
+        {
+            StackL_GeneralInput.IsVisible = false;
         }
     }
 }

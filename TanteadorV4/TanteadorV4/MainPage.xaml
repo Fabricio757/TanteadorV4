@@ -5,10 +5,13 @@
              xmlns:local="clr-namespace:TanteadorV4"
              x:Class="TanteadorV4.MainPage">
 
-    <Grid x:Name="Principal" BackgroundColor="White">
+
+     <AbsoluteLayout BackgroundColor="Blue">
+
+        <Grid x:Name="Principal" BackgroundColor="White" AbsoluteLayout.LayoutBounds="1,1,1,1" AbsoluteLayout.LayoutFlags="All">
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.2*" />
-            <RowDefinition Height="0.8*" />
+            <RowDefinition Height="0.30 *" />
+            <RowDefinition Height="0.70*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.25*" />
@@ -17,13 +20,13 @@
         </Grid.ColumnDefinitions>
 
 
-        <Grid x:Name="gTitulo" Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="0" Padding="0" RowSpacing="0">
+        <Grid x:Name="gTitulo" Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="0" Padding="1"  RowSpacing="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="0.6*" />
-                <RowDefinition Height="0.4*" />
+                <RowDefinition Height="0.5*" />
+                <RowDefinition Height="0.5*" />
             </Grid.RowDefinitions>
-            <Entry x:Name="SubTitulo1" Grid.Row="0"  HorizontalTextAlignment="Center"></Entry>
-            <Entry x:Name="SubTitulo2" Grid.Row="1" HorizontalTextAlignment="Center" Scale="1"></Entry>
+            <Label x:Name="SubTitulo1" Grid.Row="0"  HorizontalTextAlignment="Center" IsVisible="True"></Label>
+            <Label x:Name="SubTitulo2" Grid.Row="1" HorizontalTextAlignment="Center" Scale="1"></Label>
         </Grid>
 
         <Grid x:Name="Columna1" Grid.Column="0" Grid.Row="1" >
@@ -33,7 +36,7 @@
                 <RowDefinition Height="0.15*" />
             </Grid.RowDefinitions>
             <controls:CircleImage x:Name="image1" Grid.Row="0" Source="" BorderThickness="3"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104" />
-            <Editor x:Name="Nombre1"  Grid.Row="1" ></Editor>
+            <Label x:Name="Nombre1"  Grid.Row="1" ></Label>
             <Button x:Name="Saque1" Grid.Row="2" Text="Saque" TextColor="BurlyWood" />
         </Grid>
 
@@ -72,8 +75,8 @@
                     <ColumnDefinition Width="0.30*" />
                     <ColumnDefinition Width="0.35*" />
                 </Grid.ColumnDefinitions>
-                
-                <Grid Grid.Column="0" x:Name="GrillaNumero1">
+
+                <Grid Grid.Column="0" x:Name="GrillaNumero1" Padding="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="0.40*" />
                         <RowDefinition Height="0.60*" />
@@ -82,6 +85,11 @@
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="Numero1_Tapped" />
                             <TapGestureRecognizer Tapped="Numero1_Tapped2" NumberOfTapsRequired="2" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label x:Name="l_Start" Grid.Row="1" Text="Start" TextColor="White">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="l_Start_Tapped" />
                         </Label.GestureRecognizers>
                     </Label>
                 </Grid>
@@ -103,7 +111,7 @@
                     </Image>
                 </Grid>
 
-                <Grid Grid.Column="2" x:Name="GrillaNumero2">
+                <Grid Grid.Column="2" x:Name="GrillaNumero2" Padding="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="0.40*" />
                         <RowDefinition Height="0.60*" />
@@ -126,12 +134,26 @@
                 <RowDefinition Height="0.30*" />
                 <RowDefinition Height="0.15*" />
             </Grid.RowDefinitions>
-            <controls:CircleImage x:Name="image2" Grid.Row="0" Source="" BorderThickness="3"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104" />
-            <Editor x:Name="Nombre2"  Grid.Row="1" ></Editor>
+            <controls:CircleImage x:Name="image2" Grid.Row="0" Source="" BorderThickness="0"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104" />
+            <Label x:Name="Nombre2"  Grid.Row="1"></Label>
             <Button x:Name="Saque2" Grid.Row="2" Text="Saque" TextColor="BurlyWood" />
         </Grid>
 
     </Grid>
+
+        <StackLayout x:Name="StackL_GeneralInput" BackgroundColor="DarkBlue"  IsVisible="False" Padding="15" AbsoluteLayout.LayoutBounds="0.5,0.5,0.8,0.3" AbsoluteLayout.LayoutFlags="All">
+                <Entry x:Name="GeneralInput" Text="Ingrese Texto" TextColor="DarkBlue" ></Entry>
+                <Grid VerticalOptions="EndAndExpand">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.5*" />
+                        <ColumnDefinition Width="0.5*" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="b_Ok_GeneralInput" Grid.Column="0" WidthRequest="100" Text="Ok" Clicked="b_Ok_GeneralInput_Clicked" HorizontalOptions="Center" BackgroundColor="Beige" TextColor="DarkBlue"></Button>
+                <Button x:Name="b_Cancel_GeneralInput" Grid.Column="1" WidthRequest="100" Text="Cancelar" Clicked="b_Cancel_GeneralInput_Clicked" HorizontalOptions="Center" BackgroundColor="Beige" TextColor="DarkBlue"></Button>
+                </Grid>
+        </StackLayout>
+    </AbsoluteLayout>
+    
 
 
 </ContentPage>
