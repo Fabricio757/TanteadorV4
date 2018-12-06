@@ -83,6 +83,7 @@ namespace TanteadorV4
 
         private Double _fontSize_1;
         private Double _fontSize_2;
+        private Double _fontSize_3;
 
 
         public Color BackgroundColor { set; get; }
@@ -133,6 +134,19 @@ namespace TanteadorV4
             }
         }
 
+        public Double fontSize_3
+        {
+            set
+            {
+                _fontSize_3 = value;
+            }
+            get
+            {
+                return _fontSize_3 * FontSizeRelacion;
+            }
+        }
+
+        public int DobleClickCount { set; get; }
 
 
         public DispositiveStyle()
@@ -140,6 +154,7 @@ namespace TanteadorV4
             if (Device.RuntimePlatform == Device.Android)
             {
                 Dispositivo = "Android";
+                DobleClickCount = 1;
             }
 
             if (Device.RuntimePlatform == Device.UWP)
@@ -147,6 +162,7 @@ namespace TanteadorV4
                 Dispositivo = "UWP";
                 FontFamily_subDirectorio = "Assets/";
                 FontSizeRelacion = 2;
+                DobleClickCount = 2;
             }
         }
 
@@ -159,6 +175,7 @@ namespace TanteadorV4
         private int Numero2_Valor = 0;
         private int IndicePartido = 0;
         private Object gSender;
+        DispositiveStyle DStyle;
         private string[] Desc_Partidos = new string[] { "PARTIDO", "REVANCHA", "BUENO" };
 
 
@@ -168,13 +185,15 @@ namespace TanteadorV4
 
             InitMedia();
 
-            DispositiveStyle DStyle = new DispositiveStyle();
+            DStyle = new DispositiveStyle();
 
             DStyle.fontFamily_1 = "roboclonestraight3d.ttf#Robo-Clone Straight 3D";
-            DStyle.fontFamily_2 = "Storyboo.TTF#Storybook";
+            DStyle.fontFamily_2 = "IMMORTAL.ttf#Immortal";
+            //DStyle.fontFamily_3 = "Storyboo.TTF#Storybook";
 
             DStyle.fontSize_1 = 48;
             DStyle.fontSize_2 = 18;
+            DStyle.fontSize_3 = 32;
 
             DStyle.BackgroundColor = Color.Red;
 
@@ -196,6 +215,7 @@ namespace TanteadorV4
 
             tapGestureRecognizerIG.Tapped += (s, e) => {
                 StackL_GeneralInput.IsVisible = true;
+                GeneralInput.Text = "";
                 gSender = s;
             };
             SubTitulo1.GestureRecognizers.Add(tapGestureRecognizerIG);
@@ -215,16 +235,18 @@ namespace TanteadorV4
 
 
             Reloj.Text = "00:00:00";
-            Reloj_Timer = new Timer(TimeSpan.FromSeconds(2), () => Reloj.Text = Reloj_Timer.GetMinutos());
+            Reloj_Timer = new Timer(TimeSpan.FromSeconds(1), () => Reloj.Text = Reloj_Timer.GetMinutos());
+            Reloj.BackgroundColor = Color.Gray;
 
-            Reloj.FontSize = DStyle.fontSize_1;
+            Reloj.FontSize = DStyle.fontSize_1 * 0.9;
             Reloj.FontFamily = DStyle.fontFamily_1;
 
+
+            /* NUMEROS */
+
             Numero1.FontFamily = DStyle.fontFamily_1;
-
-
             Numero2.FontFamily = DStyle.fontFamily_1;
-            Nombre1.FontFamily = DStyle.fontFamily_2;
+
 
             Numero1.FontSize = DStyle.fontSize_1;
             Numero2.FontSize = DStyle.fontSize_1;
@@ -239,22 +261,34 @@ namespace TanteadorV4
             Numero2.Text = "0";
             Numero2_Valor = 0;
 
+            /*TITULOS*/
+
             SubTitulo1.Text = "Torneo";
             SubTitulo1.FontFamily = DStyle.fontFamily_2;
-            SubTitulo1.FontSize = 48;
+
+            SubTitulo1.FontSize = DStyle.fontSize_3;
             SubTitulo1.TextColor = Color.White;
 
             SubTitulo2.Text = "Ramallo";
             SubTitulo2.FontFamily = DStyle.fontFamily_2;
-            SubTitulo2.FontSize = 48;
+            SubTitulo2.FontSize = DStyle.fontSize_3 * 0.7;
             SubTitulo2.TextColor = Color.White;
+
+            /* NOMBRES */
 
             Nombre1.TextColor = Color.White;
             Nombre2.TextColor = Color.White;
 
+            Nombre1.FontFamily = DStyle.fontFamily_2;
+            Nombre2.FontFamily = DStyle.fontFamily_2;
+
+            Nombre1.FontSize = DStyle.fontSize_2;
+            Nombre2.FontSize = DStyle.fontSize_2;
+
+            Partido.FontSize = Partido.FontSize * 0.9;
         }
 
-        
+
 
         private async void takePhoto(object sender, EventArgs e)
         {
@@ -283,7 +317,7 @@ namespace TanteadorV4
                     return;
 
                 //DisplayAlert("File Location", file.Path, "OK");
-                
+
 
                 ((Image)sender).Source = ImageSource.FromStream(() =>
                 {
@@ -323,7 +357,7 @@ namespace TanteadorV4
                 return stream;
             });
         }
-    
+
 
 
         private async void InitMedia()
@@ -336,10 +370,12 @@ namespace TanteadorV4
             if (Reloj_Timer.Active == false)
             {
                 Reloj_Timer.Start();
+                Reloj.BackgroundColor = Color.Black;
             }
             else
             {
                 Reloj_Timer.Stop();
+                Reloj.BackgroundColor = Color.Gray;
             }
         }
 
@@ -360,10 +396,10 @@ namespace TanteadorV4
 
         private void Numero1_Tapped2(object sender, EventArgs e)
         {
-            Numero1_Valor = Numero1_Valor -2;
+            Numero1_Valor = Numero1_Valor - DStyle.DobleClickCount;
             Numero1.Text = Numero1_Valor.ToString();
         }
-        
+
         private void Numero2_Tapped(object sender, EventArgs e)
         {
             Numero2_Valor++;
@@ -376,20 +412,10 @@ namespace TanteadorV4
             Numero2.Text = Numero2_Valor.ToString();
         }
 
-        private void PanGestureRecognizer_PanUpdated(object sender, PanUpdatedEventArgs e)
+
+        private void l_Config_Tapped(object sender, EventArgs e)
         {
-            if ((e.TotalX > 0) && (IndicePartido < 2))
-                IndicePartido++;
-
-            if ((e.TotalX < 0) && (IndicePartido > 0))
-                IndicePartido--;
-
-            Partido.Text = Desc_Partidos[IndicePartido];
-        }
-
-        private void l_Start_Tapped(object sender, EventArgs e)
-        {
-
+            StackL_Config.IsVisible = true;
         }
 
         private void b_Ok_GeneralInput_Clicked(object sender, EventArgs e)
@@ -402,5 +428,66 @@ namespace TanteadorV4
         {
             StackL_GeneralInput.IsVisible = false;
         }
+
+        private void Partido_Tapped(object sender, EventArgs e)
+        {
+            Math.DivRem(IndicePartido + 1, 3, out IndicePartido);
+            
+            Partido.Text = Desc_Partidos[IndicePartido];
+        }
+
+        private void PanUpdated_Saque2(object sender, PanUpdatedEventArgs e)
+        {
+            if (e.TotalX < 0)
+                cambiarSaque();
+        }
+
+        private void cambiarSaque()
+        {
+            if (Saque1.BackgroundColor == Color.Green)
+                        {
+                Saque1.BackgroundColor = Color.Gray;
+                Saque2.BackgroundColor = Color.Green;
+            }
+            else
+            {
+                Saque1.BackgroundColor = Color.Green;
+                Saque2.BackgroundColor = Color.Gray;
+            }
+        }
+
+        private void Saque2_Clicked(object sender, EventArgs e)
+        {
+            cambiarSaque();
+        }
+
+        private void Saque1_Clicked(object sender, EventArgs e)
+        {
+            cambiarSaque();
+        }
+
+        private void Close_Clicked(object sender, EventArgs e)
+        {
+            StackL_Config.IsVisible = false;
+        }
+
+        private void Save_Clicked(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Reset_Clicked(object sender, EventArgs e)
+        {
+            Reloj_Timer.Stop();
+            Reloj_Timer.Reset();
+            Reloj.Text = Reloj_Timer.GetMinutos();
+            Reloj.BackgroundColor = Color.Gray;
+
+            Numero1.Text = "0";
+            Numero2.Text = "0";
+
+            Numero1_Valor = 0;
+            Numero2_Valor = 0;
+    }
     }
 }

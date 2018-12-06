@@ -81,6 +81,7 @@
   <ItemGroup>
     <AndroidAsset Include="Assets\roboclonestraight3d.ttf" />
     <AndroidAsset Include="Assets\Storyboo.TTF" />
+    <AndroidAsset Include="Assets\IMMORTAL.ttf" />
     <None Include="Resources\AboutResources.txt" />
     <None Include="Assets\AboutAssets.txt" />
     <None Include="Properties\AndroidManifest.xml" />
