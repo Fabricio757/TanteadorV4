@@ -73,8 +73,7 @@ namespace TanteadorV4
 
     public class DispositiveStyle
     {
-        private String Dispositivo;
-
+        
         private String FontFamily_subDirectorio = "";
         private Double FontSizeRelacion = 1;
 
@@ -85,6 +84,7 @@ namespace TanteadorV4
         private Double _fontSize_2;
         private Double _fontSize_3;
 
+        public String Dispositivo { set; get; }
 
         public Color BackgroundColor { set; get; }
         public String fontFamily_1
@@ -197,19 +197,9 @@ namespace TanteadorV4
 
             DStyle.BackgroundColor = Color.Red;
 
-            var tapGestureRecognizer1 = new TapGestureRecognizer();
-            var tapGestureRecognizer2 = new TapGestureRecognizer();
 
-
-            tapGestureRecognizer1.Tapped += (s, e) => {
-                takePhoto(s, e);
-            };
-            tapGestureRecognizer2.Tapped += (s, e) => {
-                takePhoto(s, e);
-            };
-
-            image1.GestureRecognizers.Add(tapGestureRecognizer1);
-            image2.GestureRecognizers.Add(tapGestureRecognizer2);
+            //image1.GestureRecognizers.Add(tapGestureRecognizer1);
+            //image2.GestureRecognizers.Add(tapGestureRecognizer2);
 
             var tapGestureRecognizerIG = new TapGestureRecognizer();
 
@@ -295,43 +285,77 @@ namespace TanteadorV4
             try
             {
 
-                if (!CrossMedia.Current.IsCameraAvailable || !CrossMedia.Current.IsTakePhotoSupported)
+                if (DStyle.Dispositivo == "UWP")
                 {
-                    DisplayAlert("No Camera", ":( No camera available.", "OK");
-                    return;
+                    loadPhoto(sender, e);
                 }
-
-                var file = await CrossMedia.Current.TakePhotoAsync(new Plugin.Media.Abstractions.StoreCameraMediaOptions
+                else
                 {
-                    Directory = "Test",
-                    SaveToAlbum = false,
-                    CompressionQuality = 75,
-                    CustomPhotoSize = 50,
-                    PhotoSize = PhotoSize.MaxWidthHeight,
-                    MaxWidthHeight = 2000,
-                    DefaultCamera = CameraDevice.Front
+                    if (!CrossMedia.Current.IsCameraAvailable || !CrossMedia.Current.IsTakePhotoSupported)
+                    {
+                        DisplayAlert("No Camera", ":( No camera available.", "OK");
+                        return;
+                    }
 
-                });
+                    var file = await CrossMedia.Current.TakePhotoAsync(new Plugin.Media.Abstractions.StoreCameraMediaOptions
+                    {
+                        Directory = "Test",
+                        SaveToAlbum = false,
+                        CompressionQuality = 75,
+                        CustomPhotoSize = 50,
+                        PhotoSize = PhotoSize.MaxWidthHeight,
+                        MaxWidthHeight = 2000,
+                        DefaultCamera = CameraDevice.Front
 
-                if (file == null)
-                    return;
+                    });
 
-                //DisplayAlert("File Location", file.Path, "OK");
+                    if (file == null)
+                        return;
+
+                    //DisplayAlert("File Location", file.Path, "OK");
 
 
-                ((Image)sender).Source = ImageSource.FromStream(() =>
-                {
-                    var stream = file.GetStream();
-                    file.Dispose();
-                    return stream;
-                });
+                    ((Image)sender).Source = ImageSource.FromStream(() =>
+                    {
+                        var stream = file.GetStream();
+                        file.Dispose();
+                        return stream;
+                    });
 
+                }
             }
             catch (Exception ex)
             {
                 DisplayAlert("Captura de error", ex.Message, "OK");
             }
         }
+
+        private async void loadPhoto(object sender, EventArgs e)
+        {
+            if (!CrossMedia.Current.IsPickPhotoSupported)
+            {
+                DisplayAlert("Photos Not Supported", ":( Permission not granted to photos.", "OK");
+                return;
+            }
+            var file = await Plugin.Media.CrossMedia.Current.PickPhotoAsync(new Plugin.Media.Abstractions.PickMediaOptions
+            {
+                PhotoSize = Plugin.Media.Abstractions.PhotoSize.Medium,
+
+            });
+
+
+            if (file == null)
+                return;
+
+            ((Image)sender).Source = ImageSource.FromStream(() =>
+            {
+                var stream = file.GetStream();
+                file.Dispose();
+                return stream;
+            });
+        }
+
+
 
         private async void Logo_Tapped(object sender, EventArgs e)
         {
@@ -357,8 +381,6 @@ namespace TanteadorV4
                 return stream;
             });
         }
-
-
 
         private async void InitMedia()
         {
@@ -392,6 +414,8 @@ namespace TanteadorV4
         {
             Numero1_Valor++;
             Numero1.Text = Numero1_Valor.ToString();
+            Saque1.BackgroundColor = Color.Green;
+            Saque2.BackgroundColor = Color.Gray;
         }
 
         private void Numero1_Tapped2(object sender, EventArgs e)
@@ -404,6 +428,8 @@ namespace TanteadorV4
         {
             Numero2_Valor++;
             Numero2.Text = Numero2_Valor.ToString();
+            Saque1.BackgroundColor = Color.Gray;
+            Saque2.BackgroundColor = Color.Green;
         }
 
         private void Numero2_Tapped2(object sender, EventArgs e)
@@ -411,7 +437,6 @@ namespace TanteadorV4
             Numero2_Valor = Numero2_Valor - 2;
             Numero2.Text = Numero2_Valor.ToString();
         }
-
 
         private void l_Config_Tapped(object sender, EventArgs e)
         {
@@ -489,5 +514,7 @@ namespace TanteadorV4
             Numero1_Valor = 0;
             Numero2_Valor = 0;
     }
+
+
     }
 }

@@ -1,4 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>  
+    
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ImageCircle.Forms.Plugin.Abstractions;assembly=ImageCircle.Forms.Plugin"
@@ -35,7 +36,12 @@
                 <RowDefinition Height="0.30*" />
                 <RowDefinition Height="0.15*" />
             </Grid.RowDefinitions>
-            <controls:CircleImage x:Name="image1" Grid.Row="0" Source="" BorderThickness="2"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104" />
+                <controls:CircleImage x:Name="image1" Grid.Row="0" Source="" BorderThickness="2"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104">
+                    <controls:CircleImage.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="takePhoto"></TapGestureRecognizer>
+                    </controls:CircleImage.GestureRecognizers>
+                </controls:CircleImage> 
+            
             <Label x:Name="Nombre1"  Grid.Row="1" ></Label>
                 <Button x:Name="Saque1" Grid.Row="2" Text="" Margin="0" FontSize="Medium" TextColor="BurlyWood" CornerRadius="10" Clicked="Saque1_Clicked" />
         </Grid>
@@ -102,7 +108,7 @@
                     <Label x:Name="Partido" Grid.Row="0" Text="PARTIDO" YAlign="Center" XAlign="Center" FontSize="Medium" BackgroundColor="CadetBlue" TextColor="White" FontAttributes="Bold" Style="style_btn">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="Partido_Tapped" NumberOfTapsRequired="2"/>
-                            </Label.GestureRecognizers>
+                        </Label.GestureRecognizers>
                     </Label>
                     <Image x:Name="Logo" Grid.Row="1" BackgroundColor="Red" Margin="10">
                         <Image.GestureRecognizers>
@@ -134,8 +140,12 @@
                 <RowDefinition Height="0.30*" />
                 <RowDefinition Height="0.15*" />
             </Grid.RowDefinitions>
-            <controls:CircleImage x:Name="image2" Grid.Row="0" Source="" BorderThickness="2"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104" />
-            <Label x:Name="Nombre2"  Grid.Row="1"></Label>
+                <controls:CircleImage x:Name="image2" Grid.Row="0" Source="" BorderThickness="2" BorderColor="Red" BackgroundColor="AliceBlue"  Aspect="AspectFill" WidthRequest="80" HeightRequest="80">
+                    <controls:CircleImage.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="takePhoto"></TapGestureRecognizer>
+                    </controls:CircleImage.GestureRecognizers>
+                </controls:CircleImage>
+                <Label x:Name="Nombre2"  Grid.Row="1"></Label>
                 <Button x:Name="Saque2" Grid.Row="2" Text="" Margin="0" FontSize="Medium" TextColor="BurlyWood" CornerRadius="10" Clicked="Saque2_Clicked"></Button>
             </Grid>
 
