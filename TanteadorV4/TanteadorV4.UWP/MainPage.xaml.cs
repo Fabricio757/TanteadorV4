@@ -24,4 +24,5 @@ namespace TanteadorV4.UWP
             LoadApplication(new TanteadorV4.App());
         }
     }
+
 }

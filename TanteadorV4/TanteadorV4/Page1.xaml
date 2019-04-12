@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TanteadorV4.Page1">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="TitleStyle" TargetType="Label">
+                <Setter Property="HorizontalOptions"
+                            Value="Center" />
+                <Setter Property="VerticalOptions"
+                            Value="CenterAndExpand" />
+                <Setter Property="FontSize" Value="Large" />
+                <Setter Property="TextColor" Value="Wheat" />
+            </Style>
+            <Style x:Key="commonLabelStyle" TargetType="Label">
+                <Setter Property="TextColor" Value="Wheat" />
+                <Setter Property="Margin" Value="0,-5,0,-5"/>
+            </Style>
+            
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    
+    <ContentPage.Content>
+       <Grid Padding="10"  BackgroundColor="DarkGoldenrod">
+            <Grid.RowDefinitions >
+                <RowDefinition Height="0.05*"></RowDefinition>
+                <RowDefinition Height="0.85*"></RowDefinition>
+                <RowDefinition Height="0.1*"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" x:Name="TituloABM" Text="abm" Style="{StaticResource TitleStyle}"></Label>
+
+            <Grid Grid.Row="1" ColumnSpacing="1"  BackgroundColor="DarkGoldenrod">
+                
+                <StackLayout x:Name="stkLista" Grid.Column="0" BackgroundColor="DarkGoldenrod" IsVisible="True">                    
+                    <ListView x:Name="Lista" Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <StackLayout Margin="10,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                                        <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
+                                        <Label Text="{Binding FechaOrden}" VerticalTextAlignment="End" HorizontalOptions="End" BackgroundColor="Accent"  />
+                                    </StackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackLayout>
+                   
+                <StackLayout x:Name="stkControles" IsVisible="False">
+                        
+                    <StackLayout x:Name="stkNombre">
+                        <Label Text="Nombre"></Label>
+                        <Entry x:Name="edtNombre" Text="{Binding Objeto.Nombre}"></Entry>
+                    </StackLayout>
+                    
+                    <StackLayout x:Name="stkTorneos">
+                        <Label Text="Fecha" Style="{StaticResource commonLabelStyle}"></Label>
+                        <DatePicker x:Name="dtpFecha" Date="{Binding Objeto.Fecha}"></DatePicker>
+                        <Label Text="Titulo1"></Label>
+                        <Entry x:Name="edtTitulo1" Text="{Binding Objeto.Titulo1}"></Entry>
+                        <Label Text="Titulo2"></Label>
+                        <Entry x:Name="edtTitulo2" Text="{Binding Objeto.Titulo2}"></Entry>
+                        <Button x:Name="btnZonas" Text="Zonas" Clicked="btnZonas_Clicked" CornerRadius="10" Margin="1"></Button>
+                        <Button x:Name="btnEquipos" Text="Equipos" Clicked="btnEquipos_Clicked" CornerRadius="10" Margin="1"></Button>
+                        <Button x:Name="btnGenerarTorneo" Text="GenerarTorneo" Clicked="btnGenerarTorneo_Clicked"  CornerRadius="10" Margin="1"></Button>
+                    </StackLayout>
+
+                    <StackLayout x:Name="stkZonas" IsVisible="False">
+                        <Label Text="Zona de Llaves?"></Label>
+                        <Switch x:Name="edtEsLlave"  IsToggled="{Binding Objeto.esLLave}"></Switch>
+
+                        <Label Text="Cabeza de Serie"></Label>
+                        <Picker x:Name="lstEquipo" ItemsSource="{Binding Equipos}" SelectedItem="{Binding SelectedCabecera}" ItemDisplayBinding="{Binding Nombre}"></Picker>
+
+
+                        <Button x:Name="btnListaEquipos" Text="Lista Equipos" Clicked="btnListaEquipos_Clicked" CornerRadius="10" Margin="1"></Button>
+                        <Button x:Name="btnPartidos" Text="Partidos" Clicked="btnPartidos_Clicked" CornerRadius="10" Margin="1"></Button>
+                    </StackLayout>
+
+                    <StackLayout x:Name="stkListaEquipos" IsVisible="False">
+                        <Label Text="Equipos disponibles"></Label>
+                        <ListView x:Name="ListaEquipos_Torneo" Margin="20" ItemSelected="ListaEquipos_Torneo_ItemSelected" BackgroundColor="SandyBrown" >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <ViewCell>
+                                        <StackLayout Margin="20,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                                            <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
+                                            <Label Text="{Binding ID}" VerticalTextAlignment="End" HorizontalOptions="StartAndExpand" />
+                                        </StackLayout>
+                                    </ViewCell>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        
+                        <Label Text="En la zona"></Label>
+                        <ListView x:Name="ListaEquipos_Zona" Margin="20" ItemSelected="ListaEquipos_Zona_ItemSelected" BackgroundColor="SandyBrown" >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <ViewCell>
+                                        <StackLayout Margin="20,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                                            <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
+                                            <Label Text="{Binding ID}" VerticalTextAlignment="End" HorizontalOptions="StartAndExpand" />
+                                        </StackLayout>
+                                    </ViewCell>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        
+                    </StackLayout>
+
+                    <StackLayout x:Name="stkPartidos" IsVisible="False">
+                        <Label Text="Seleccione Equipo Nro 1"></Label>
+                        <Picker x:Name="lstEquipo1" ItemsSource="{Binding MisEquipos}" SelectedItem="{Binding SelectedEquipo1}" ItemDisplayBinding="{Binding Nombre}"></Picker>
+                        <Label Text="Seleccione Equipo Nro 2"></Label>
+                        <Picker x:Name="lstEquipo2" ItemsSource="{Binding MisEquipos}" SelectedItem="{Binding SelectedEquipo2}" ItemDisplayBinding="{Binding Nombre}"></Picker>
+
+                        <Label Text="Resultado"></Label>
+                        <Entry x:Name="edtResultado" Text="{Binding Objeto.Resultado}"></Entry>
+                        <Label Text="Goles Equipo 1"></Label>
+                        <Entry x:Name="edtGolesEquipo1" Text="{Binding Objeto.GolesEquipo1}"></Entry>
+                        <Label Text="Goles Equipo 2"></Label>
+                        <Entry x:Name="edtGolesEquipo2" Text="{Binding Objeto.GolesEquipo2}"></Entry>
+
+                    </StackLayout>
+
+                    <StackLayout x:Name="stkEquipos" IsVisible="False">
+                        <Button x:Name="btnJugadores" Text="Jugadores" Clicked="btnJugadores_Clicked"></Button>
+                    </StackLayout>
+
+                    <StackLayout x:Name="stkJugadores" IsVisible="False">
+                        <Label Text="Seleccione Equipo"></Label>
+                        <Picker x:Name="lstEquipo_Equipo" ItemsSource="{Binding MisEquipos}" SelectedItem="{Binding SelectedEquipo}" ItemDisplayBinding="{Binding Nombre}"></Picker>
+                    </StackLayout>
+
+                </StackLayout>
+
+            </Grid>
+ 
+            <Grid Grid.Row="2" Margin="0">
+                <Grid ColumnSpacing="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.25*"></ColumnDefinition>
+                        <ColumnDefinition Width="0.25*"></ColumnDefinition>
+                        <ColumnDefinition Width="0.25*"></ColumnDefinition>
+                        <ColumnDefinition Width="0.25*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="btnUpdate" Text="Guardar" Margin="0" Grid.Column="0" Clicked="btnUpdate_Clicked" CornerRadius="10" IsEnabled="False"></Button>
+                    <Button x:Name="btnLimpiar" Text="Nuevo" Grid.Column="1" Clicked="btnLimpiar_Clicked" CornerRadius="10" ></Button>
+                    <Button x:Name="btnDelete" Text="Borrar" Grid.Column="2" Clicked="btnDelete_Clicked" CornerRadius="10" IsEnabled="False"></Button>
+                    <Button x:Name="btnAtras" Text="Atrás"  Grid.Column="3" Clicked="btnAtras_Clicked" CornerRadius="10"></Button>
+                </Grid>
+            </Grid>
+            
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

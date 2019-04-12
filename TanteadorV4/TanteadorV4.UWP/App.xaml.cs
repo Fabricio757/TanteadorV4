@@ -14,6 +14,11 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using ImageCircle.Forms.Plugin.UWP;
+using System.Reflection;
+using Windows.ApplicationModel.Core;
+using Windows.UI.ViewManagement;
+using Windows.UI;
 
 namespace TanteadorV4.UWP
 {
@@ -52,7 +57,12 @@ namespace TanteadorV4.UWP
 
                 rootFrame.NavigationFailed += OnNavigationFailed;
 
-                Xamarin.Forms.Forms.Init(e);
+                var rendererAssemblies = new System.Reflection.Assembly[]
+                {
+                typeof(ImageCircleRenderer).GetTypeInfo().Assembly
+                };
+                Xamarin.Forms.Forms.Init(e, rendererAssemblies);
+                ImageCircleRenderer.Init();
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
@@ -61,6 +71,7 @@ namespace TanteadorV4.UWP
 
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
+                extendAcrylicIntoTitleBar();
             }
 
             if (rootFrame.Content == null)
@@ -96,6 +107,16 @@ namespace TanteadorV4.UWP
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        private void extendAcrylicIntoTitleBar()
+        {
+            CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
+            ApplicationViewTitleBar titleBar =
+            ApplicationView.GetForCurrentView().TitleBar;
+            titleBar.BackgroundColor = Colors.Red;
+            titleBar.ButtonBackgroundColor = Colors.Transparent;
+            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
         }
     }
 }

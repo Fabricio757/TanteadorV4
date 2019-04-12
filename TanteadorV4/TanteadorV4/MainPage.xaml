@@ -1,176 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>  
-    
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:controls="clr-namespace:ImageCircle.Forms.Plugin.Abstractions;assembly=ImageCircle.Forms.Plugin"
              xmlns:local="clr-namespace:TanteadorV4"
+             xmlns:controls="clr-namespace:ImageCircle.Forms.Plugin.Abstractions;assembly=ImageCircle.Forms.Plugin"
              x:Class="TanteadorV4.MainPage">
 
-
-     <AbsoluteLayout BackgroundColor="Blue">
-
-        <Grid x:Name="Principal" BackgroundColor="White" AbsoluteLayout.LayoutBounds="1,1,1,1" AbsoluteLayout.LayoutFlags="All">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="0.25 *" />
-            <RowDefinition Height="0.75*" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.25*" />
-            <ColumnDefinition Width="0.40*" />
-            <ColumnDefinition Width="0.25*" />
-        </Grid.ColumnDefinitions>
+    <StackLayout x:Name="Principal" BackgroundColor="Aquamarine">
+        <!-- Place new controls here -->
 
 
-        <Grid x:Name="gTitulo" Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="0" Padding="1"  RowSpacing="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0.5*" />
-                <RowDefinition Height="0.5*" />
-            </Grid.RowDefinitions>
-            <Label x:Name="SubTitulo1" Grid.Row="0"  HorizontalTextAlignment="Center" IsVisible="True" ></Label>
-            <Label x:Name="SubTitulo2" Grid.Row="1" HorizontalTextAlignment="Center" Scale="1"></Label>
-        </Grid>
-
-        <Grid x:Name="Columna1" Grid.Column="0" Grid.Row="1" Padding="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0.55*" />
-                <RowDefinition Height="0.30*" />
-                <RowDefinition Height="0.15*" />
-            </Grid.RowDefinitions>
-                <controls:CircleImage x:Name="image1" Grid.Row="0" Source="" BorderThickness="2"  Aspect="AspectFill" WidthRequest="104" HeightRequest="104">
-                    <controls:CircleImage.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="takePhoto"></TapGestureRecognizer>
-                    </controls:CircleImage.GestureRecognizers>
-                </controls:CircleImage> 
-            
-            <Label x:Name="Nombre1"  Grid.Row="1" ></Label>
-                <Button x:Name="Saque1" Grid.Row="2" Text="" Margin="0" FontSize="Medium" TextColor="BurlyWood" CornerRadius="10" Clicked="Saque1_Clicked" />
-        </Grid>
-
-        <Grid x:Name="Columna2" Grid.Column="1" Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0.35*" />
-                <RowDefinition Height="0.55*" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" />
-            </Grid.ColumnDefinitions>
-
-            <Grid Grid.Row="0" Padding="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="0.70*"  />
-                    <RowDefinition Height="0.25*" />
-                </Grid.RowDefinitions>
-                
-                <Label x:Name="Reloj" Grid.Row="0" XAlign="Center" YAlign="Center" BackgroundColor="Black" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer
-                                 Tapped="Reloj_Tapped" />
-                        <TapGestureRecognizer
-                                 Tapped="Reloj_Tapped2"
-                                NumberOfTapsRequired="2"                        
-                                />
-                    </Label.GestureRecognizers>
-                </Label>
-                
-                <Label x:Name="Reloj_subTexto" Grid.Row="1" XAlign="Center" TextColor="White" FontAttributes="Bold" Text="TIEMPO DE JUEGO"></Label>
-            </Grid>
-                
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.35*" />
-                    <ColumnDefinition Width="0.30*" />
-                    <ColumnDefinition Width="0.35*" />
-                </Grid.ColumnDefinitions>
-
-                <Grid Grid.Column="0" x:Name="GrillaNumero1" Padding="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.60*" />
-                        <RowDefinition Height="0.40*" />
-                    </Grid.RowDefinitions>
-                    <Label x:Name="Numero1" Grid.Row="0"  XAlign="Center" YAlign="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="Numero1_Tapped" />
-                            <TapGestureRecognizer Tapped="Numero1_Tapped2" NumberOfTapsRequired="2" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                    <Label x:Name="l_Config" Grid.Row="1" Text="" TextColor="White" BackgroundColor="Red" VerticalOptions="FillAndExpand">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="l_Config_Tapped" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </Grid>
-                
-                <Grid Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.30*" />
-                        <RowDefinition Height="0.70*" />
-                    </Grid.RowDefinitions>
-                    <Label x:Name="Partido" Grid.Row="0" Text="PARTIDO" YAlign="Center" XAlign="Center" FontSize="Medium" BackgroundColor="CadetBlue" TextColor="White" FontAttributes="Bold" Style="style_btn">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="Partido_Tapped" NumberOfTapsRequired="2"/>
-                        </Label.GestureRecognizers>
-                    </Label>
-                    <Image x:Name="Logo" Grid.Row="1" BackgroundColor="Red" Margin="10">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="Logo_Tapped" />                                                   
-                        </Image.GestureRecognizers>
-                    </Image>
-                </Grid>
-
-                <Grid Grid.Column="2" x:Name="GrillaNumero2" Padding="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.60*" />
-                        <RowDefinition Height="0.40*" />
-                    </Grid.RowDefinitions>
-                    <Label x:Name="Numero2" Grid.Row="0"  XAlign="Center" YAlign="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="Numero2_Tapped" />
-                            <TapGestureRecognizer Tapped="Numero2_Tapped2" NumberOfTapsRequired="2" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </Grid>
-
-            </Grid>
-
-        </Grid>
-
-        <Grid x:Name="Columna3" Grid.Column="2" Grid.Row="1" Padding="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0.55*" />
-                <RowDefinition Height="0.30*" />
-                <RowDefinition Height="0.15*" />
-            </Grid.RowDefinitions>
-                <controls:CircleImage x:Name="image2" Grid.Row="0" Source="" BorderThickness="2" BorderColor="Red" BackgroundColor="AliceBlue"  Aspect="AspectFill" WidthRequest="80" HeightRequest="80">
-                    <controls:CircleImage.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="takePhoto"></TapGestureRecognizer>
-                    </controls:CircleImage.GestureRecognizers>
-                </controls:CircleImage>
-                <Label x:Name="Nombre2"  Grid.Row="1"></Label>
-                <Button x:Name="Saque2" Grid.Row="2" Text="" Margin="0" FontSize="Medium" TextColor="BurlyWood" CornerRadius="10" Clicked="Saque2_Clicked"></Button>
-            </Grid>
-
-    </Grid>
-
-        <StackLayout x:Name="StackL_GeneralInput" BackgroundColor="DarkBlue"  IsVisible="False" Padding="15" AbsoluteLayout.LayoutBounds="0.5,0.5,0.8,0.4" AbsoluteLayout.LayoutFlags="All">
-                <Editor x:Name="GeneralInput" Text="Ingrese Texto" TextColor="DarkBlue" BackgroundColor="white" HeightRequest="50" ></Editor>
-                <Grid VerticalOptions="EndAndExpand">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="0.5*" />
-                        <ColumnDefinition Width="0.5*" />
-                    </Grid.ColumnDefinitions>
-                    <Button x:Name="b_Ok_GeneralInput" Grid.Column="0" WidthRequest="80" Text="Ok" Clicked="b_Ok_GeneralInput_Clicked" HorizontalOptions="End" BackgroundColor="Beige" TextColor="DarkBlue"></Button>
-                    <Button x:Name="b_Cancel_GeneralInput" Grid.Column="1" WidthRequest="80" Text="Cancelar" Clicked="b_Cancel_GeneralInput_Clicked" HorizontalOptions="Start" BackgroundColor="Beige" TextColor="DarkBlue"></Button>
-                </Grid>
-        </StackLayout>
- 
-        <StackLayout x:Name="StackL_Config" BackgroundColor="DarkBlue"  IsVisible="False" Padding="15" AbsoluteLayout.LayoutBounds="0.5,0.5,0.5,0.5" AbsoluteLayout.LayoutFlags="All">
-            <Button x:Name="Save" Text="Guardar" BackgroundColor="Beige" TextColor="Blue" Clicked="Save_Clicked"> </Button>
-            <Button x:Name="Reset" Text="Resetear" BackgroundColor="Beige" TextColor="Blue" Clicked="Reset_Clicked"></Button>
-            <Button x:Name="Close" Text="Cerrar" BackgroundColor="Beige" TextColor="Blue" Clicked="Close_Clicked"></Button>
-        </StackLayout>
-    
-     </AbsoluteLayout>
-    
-
+        <Entry x:Name="entry" Grid.Column="0" Grid.Row="0"></Entry>
+        <controls:CircleImage x:Name="image1"  Grid.Row="0" Source="" BackgroundColor="Blue" BorderThickness="3" BorderColor="#9B9B9B" WidthRequest="80" HeightRequest="80" />
+      <Button Clicked="Button_Clicked"></Button>
+      <Button Clicked="Button2_Clicked"></Button>
+      
+    </StackLayout>
 
 </ContentPage>
