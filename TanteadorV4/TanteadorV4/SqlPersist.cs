@@ -28,7 +28,7 @@ namespace TanteadorV4
             database.CreateTableAsync<objListaEquipos>().Wait();
             database.CreateTableAsync<objPartidos>().Wait();
             database.CreateTableAsync<objJugadores>().Wait();
-
+            
             //database.CreateTableAsync<SqlPersistZonas>().Wait();
 
             Torneos.database = database;
@@ -66,6 +66,11 @@ namespace TanteadorV4
         {
             return null;
         }
+
+        public virtual async Task<objId> GetAsync(int id)
+        {
+            return null;
+        }
     }
 
 
@@ -93,9 +98,10 @@ namespace TanteadorV4
             return await database.QueryAsync<objEquipos>(strSql);
         }
 
-        public async Task<List<objEquipos>> MisEquiposDisponibles(objTorneos objTorneo, bool Cabeceras = false)
+        public async Task<List<objEquipos>> MisEquiposDisponibles(objTorneos objTorneo)
         {
-            string strSql = "select * from EquiposDisponibles where IdTorneo = " + objTorneo.ID.ToString();
+            string strSql = "SELECT E.* FROM objEquipos E left join objListaEquipos L  on E.Id = L.IdEquipo WHERE L.IdEquipo is null and E.[IdTorneo] = " + objTorneo.ID.ToString();
+
             return await database.QueryAsync<objEquipos>(strSql);
         }
 
@@ -150,16 +156,23 @@ namespace TanteadorV4
             return Resultado.Result;
         }
 
-
-        public List<objEquipos> MisEquiposAsignados(objZonas Zona)
+        public async Task<List<objEquipos>> MisEquipos(objZonas Zona)
         {
-                //objTorneos Torneo = (objTorneos)Filtro_GetItemsAsync;
-                string sqlQ = "select * from[objEquipos] ";
-                sqlQ = sqlQ + " WHERE IdZona = " + Zona.ID.ToString();
+            string sqlQ = "select * from[objEquipos] ";
+            sqlQ = sqlQ + " WHERE IdZona = " + Zona.ID.ToString();
 
-                var Resultado = database.QueryAsync<objEquipos>(sqlQ);
-                return Resultado.Result;
-            
+            var Resultado = await database.QueryAsync<objEquipos>(sqlQ);
+            return Resultado;
+        }
+
+        public List<objEquipos> MisEquipos_Sync(objZonas Zona)
+        {
+            //return this.MisEquipos(Zona).Result;
+            string sqlQ = "select * from[objEquipos] ";
+            sqlQ = sqlQ + " WHERE IdZona = " + Zona.ID.ToString();
+
+            var Resultado = database.QueryAsync<objEquipos>(sqlQ);
+            return Resultado.Result;            
         }
     }
 
@@ -167,23 +180,20 @@ namespace TanteadorV4
     {
         public override async Task<List<objId>> GetItemsAsync()
         {
-            //return database.Table<objZonas>().ToListAsync();
             var Resultado = await database.QueryAsync<objEquipos>("SELECT E.*, E.nombre Display FROM [objEquipos] E WHERE [IdTorneo] = " + ((objTorneos)Filtro_GetItemsAsync).ID.ToString());
-
             List<objId> R = Resultado.ConvertAll(X => (objId)X);
             return R;
         }
 
         public Task<List<objEquipos>> GetEquiposSinZonaAsync(int p_IdTorneo)
-        {
-            //return database.Table<objZonas>().ToListAsync();            
+        {           
             return database.QueryAsync<objEquipos>("SELECT * FROM [objEquipos] WHERE [IdZona] = 0 and [IdTorneo] = " + ((objTorneos)Filtro_GetItemsAsync).ID.ToString());
-
         }
 
-        public Task<objEquipos> GetAsync(int ID)
+        public override async Task<objId> GetAsync(int id)
         {
-            return database.GetAsync<objEquipos>(ID);
+            objEquipos E = await database.GetAsync<objEquipos>(id);
+            return E;
         }
 
         public objEquipos GetEquipo(int ID)
@@ -191,21 +201,26 @@ namespace TanteadorV4
             var Result = database.GetAsync<objEquipos>(ID);
             return (objEquipos)Result.Result;
         }
+
+        public Task<List<objPartidos>> MisPartidos(int p_IdEquipo)
+        {
+            string strSql = "SELECT * FROM [objPartidos] where IdEquipo1 = " + p_IdEquipo;
+            strSql = strSql + " or IdEquipo2 = " + p_IdEquipo;
+            return database.QueryAsync<objPartidos>(strSql);
+        }
+
+        public async Task<Boolean> EsCabecera(int p_IdEquipo)
+        {/*Retorna si es o no cabecera de algua zona*/
+            string strSql = "SELECT * FROM [objZonas] where IdCabecera = " + p_IdEquipo;            
+            List<objZonas> Zonas = await database.QueryAsync<objZonas>(strSql);
+
+            return (Zonas.Count > 0);
+        }
     }
 
-    public class SqlPersistListaEquipos
+    public class SqlPersistListaEquipos : SqlPersistObject
     {
         public SQLiteAsyncConnection database;
-
-        public async Task<List<objId>> GetItemsAsync_EquiposDisponibles(int IdTorneo)
-        {
-            string strSql = "SELECT * FROM EquiposDisponibles WHERE [IdTorneo] = " + IdTorneo.ToString();
-
-            var Resultado = await database.QueryAsync<objEquipos>(strSql);
-
-            List<objId> R = Resultado.ConvertAll(X => (objId)X);
-            return R;
-        }
 
         public async Task<List<objId>> GetItemsAsync_EquiposZona(int IdZona)
         {
@@ -222,11 +237,12 @@ namespace TanteadorV4
 
         public Task<int> DeleteItemListaEquipo(objListaEquipos item)
         {
+            database.ExecuteAsync("UPDATE objEquipos SET IdZona = null WHERE Id = " + item.IdEquipo.ToString());
             return database.ExecuteAsync("DELETE FROM [objListaEquipos] WHERE [IdEquipo] = " + item.IdEquipo.ToString() + " and [IdZona] = " + item.IdZona.ToString());
         }
 
         public Task<int> InsertItemAsync(objListaEquipos item)
-        {
+        { 
             return database.InsertAsync(item);
         }
 
@@ -245,7 +261,7 @@ namespace TanteadorV4
     {
         public override async Task<List<objId>> GetItemsAsync()
         {
-            string S = "select P.*, P.nombre || ' fecha: ' || P.fecha Display FROM [objPartidos] P ";
+            string S = "select P.*, P.nombre || ' fecha: ' || P.fechaOrden Display FROM [objPartidos] P ";
             S = S + " WHERE P.[IdZona] = " + ((objZonas)Filtro_GetItemsAsync).ID.ToString() + " order by FechaOrden";
 
             List<objPartidos> Resultado = await database.QueryAsync<objPartidos>(S);
@@ -292,14 +308,14 @@ namespace TanteadorV4
 
     #endregion
 
-    #region Objetos
+    #region OBJETOS
+
     public class objId
     {
         [PrimaryKey, AutoIncrement]
         public int ID { get; set; }
         public string Nombre { get; set; }
     }
-
 
     public class objTorneos : objId
     {
@@ -348,6 +364,7 @@ namespace TanteadorV4
         public string pathFoto { get; set; }
         public int IdEquipo { get; set; }
     }
+
     #endregion
 
 

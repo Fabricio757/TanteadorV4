@@ -53,7 +53,7 @@ namespace TanteadorV4
         }
 
 
-        #region Mostrar
+        #region VISTAS
 
         private void ItemPartidos_OnMostrar(object sender, EventArgs e)
         {
@@ -139,6 +139,8 @@ namespace TanteadorV4
 
             btnUpdate.IsEnabled = false;
             btnDelete.IsEnabled = false;
+            btnLimpiar.IsEnabled = true;
+
             enumVista = EnumVista.vistaLista;
             await RefreshList();
         }
@@ -150,12 +152,16 @@ namespace TanteadorV4
 
             btnUpdate.IsEnabled = true;
             btnDelete.IsEnabled = true;
+            btnLimpiar.IsEnabled = true;
             enumVista = EnumVista.vistaItem;
         }
 
         private void VistaDobleLista()
         {
             VistaItem();
+            btnUpdate.IsEnabled = false;
+            btnDelete.IsEnabled = false;
+            btnLimpiar.IsEnabled = false;
             enumVista = EnumVista.vistaLista;
         }
 
@@ -178,7 +184,6 @@ namespace TanteadorV4
             controlesLimpios = false;
             ItemVM.Mostrar(null, recalculo);
         }
-
 
         private async void btnUpdate_Clicked(object sender, EventArgs e)
         {
@@ -231,6 +236,7 @@ namespace TanteadorV4
             else
             {
                 ItemVM = ItemVM.ItemAtras;
+                ItemVM.setItemPropertiesFromObject();
                 BindingContext = ItemVM;
                 ItemVM.Mostrar(null);
                 VistaItem();
@@ -307,8 +313,10 @@ namespace TanteadorV4
             ItemVM = ItemListaEquipos;
             ItemVM.ItemAtras = ItemZona;
 
-            ListaEquipos_Torneo.ItemsSource = await ItemListaEquipos.RetornarLista_Equipos(ItemTorneo.Objeto.ID);
-            ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
+            
+            ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+            ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
+            //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
 
             VistaDobleLista();
 
@@ -331,21 +339,35 @@ namespace TanteadorV4
             await VistaLista();
         }
 
-         private async void ListaEquipos_Torneo_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private async void ListaEquipos_Torneo_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             objEquipos Item = (objEquipos)e.SelectedItem;
             await ItemListaEquipos.AddEquipo(Item);
 
-            ListaEquipos_Torneo.ItemsSource = await ItemListaEquipos.RetornarLista_Equipos(ItemTorneo.Objeto.ID);
-            ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
+            ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+            ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();//ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
         }
 
         private async void ListaEquipos_Zona_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             objEquipos Item = (objEquipos)e.SelectedItem;
-            await ItemListaEquipos.RemoveEquipo(Item);
-            ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
-            ListaEquipos_Torneo.ItemsSource = await ItemListaEquipos.RetornarLista_Equipos(ItemTorneo.Objeto.ID);
+
+            EquiposViewModel EquiposVM = new EquiposViewModel();
+            EquiposVM.Objeto = Item;
+
+            List<objPartidos> misPartidos = await EquiposVM.MisPartidos(Item);
+
+            if (misPartidos.Count == 0)
+            {
+                
+                await ItemListaEquipos.RemoveEquipo(Item);
+
+                //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
+                ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
+                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+            }
+            else
+                await DisplayAlert("Mensaje", "No se puede eliminar, tiene partidos asignados", "Ok");
         }
 
         #endregion

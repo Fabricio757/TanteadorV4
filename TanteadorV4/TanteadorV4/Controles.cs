@@ -107,7 +107,7 @@ namespace TanteadorV4
 
             List<objEquipos> losEquipos = new List<objEquipos>();
 
-            List<objEquipos> misEquiposAsignados = zonaVM.MisEquiposAsignados();
+            List<objEquipos> misEquiposAsignados = zonaVM.MisEquipos_Sync();
             foreach (objEquipos Equipo in misEquiposAsignados)
             {
                 losEquipos.Add(Equipo);
@@ -130,7 +130,13 @@ namespace TanteadorV4
             List<objPartidos> losPartidos = new List<objPartidos>();
 
             Cantidad = losEquipos.Count;
-            int CantidadFechas = ((Cantidad * Cantidad) - (((Cantidad + 1) * Cantidad) / 2)) / 2;
+            int CantidadFechas = 0;
+
+            if (Cantidad == 2)
+                CantidadFechas = 1;
+            else
+                CantidadFechas = Cantidad - 1;
+               // CantidadFechas = ((Cantidad * Cantidad) - (((Cantidad + 1) * Cantidad) / 2)) / 2;
 
             /*Recorro las Fecha*/
             for (int Fecha = 1; Fecha <= CantidadFechas; Fecha++)

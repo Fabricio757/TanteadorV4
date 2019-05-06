@@ -148,6 +148,11 @@ namespace TanteadorV4
             return await App.Database.Torneos.MisEquiposQueNoSonCabecera((objTorneos)Objeto);
         }
 
+        public async Task<List<objEquipos>> MisEquiposDisponibles()
+        {
+            return await App.Database.Torneos.MisEquiposDisponibles((objTorneos)this.Objeto);
+        }
+
         public async Task<List<objZonas>> MisZonas()
         {
             return await App.Database.Torneos.MisZonas((objTorneos)Objeto);
@@ -242,9 +247,14 @@ namespace TanteadorV4
                 App.Database.Partidos.InsertItemAsync(Partido);
         }
 
-        public List<objEquipos> MisEquiposAsignados()
+        public async Task<List<objEquipos>> MisEquipos()
         {
-            return App.Database.Zonas.MisEquiposAsignados((objZonas)Objeto);
+            return await App.Database.Zonas.MisEquipos((objZonas)Objeto);
+        }
+
+        public List<objEquipos> MisEquipos_Sync()
+        {
+            return App.Database.Zonas.MisEquipos_Sync((objZonas)Objeto);
         }
     }
 
@@ -261,6 +271,16 @@ namespace TanteadorV4
             Objeto = new objEquipos();
             ((objEquipos)Objeto).IdTorneo = _ItemAtras.Objeto.ID;
         }
+
+        public Task<List<objPartidos>> MisPartidos(objEquipos Equipo)
+        {
+            return App.Database.Equipos.MisPartidos(Equipo.ID);
+        }
+
+        public Task<Boolean> EsCabecera(objEquipos Equipo)
+        {
+            return App.Database.Equipos.EsCabecera(Equipo.ID);
+        }
     }
 
 
@@ -271,7 +291,8 @@ namespace TanteadorV4
         public virtual async Task<List<objId>> RetornarLista_Equipos(int IdTorneo)
         {
             //Persist = getPersist();
-            return await App.Database.ListaEquipos.GetItemsAsync_EquiposDisponibles(IdTorneo);
+            //return await App.Database.ListaEquipos.GetItemsAsync_EquiposDisponibles(IdTorneo);
+            return null;
         }
 
         public virtual async Task<List<objId>> RetornarLista_EquiposZona(int IdZona)
