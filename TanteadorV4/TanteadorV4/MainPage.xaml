@@ -5,7 +5,7 @@
              xmlns:controls="clr-namespace:ImageCircle.Forms.Plugin.Abstractions;assembly=ImageCircle.Forms.Plugin"
              x:Class="TanteadorV4.MainPage">
 
-    <StackLayout x:Name="Principal" BackgroundColor="Aquamarine">
+    <StackLayout x:Name="Principal" BackgroundColor="Blue">
         <!-- Place new controls here -->
 
 
