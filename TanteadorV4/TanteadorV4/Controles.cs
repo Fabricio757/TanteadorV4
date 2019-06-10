@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Xamarin.Forms;
+using System.Threading.Tasks;
 
 namespace TanteadorV4
 {
@@ -44,12 +45,12 @@ namespace TanteadorV4
 
     class Funciones
     {
-        public async void GenerarTorneos(TorneosViewModel Torneo)
+        public async void GenerarTorneos(VmTorneos Torneo)
         {/*Genera los partidos del Torneo*/
-            List<objEquipos> Equipos = await Torneo.MisEquiposQueNoSonCabecera();
-            List<objZonas> Zonas = await Torneo.MisZonas();
+            List<ObjEquipos> Equipos = await Torneo.MisEquiposQueNoSonCabecera();
+            List<ObjId> Zonas = await Torneo.MisZonas();
 
-            ZonasViewModel zonaVM = new ZonasViewModel();
+            VmZonas zonaVM = new VmZonas();
 
             /*Verifia que existan las zonas*/
             if (Zonas.Count > 0)
@@ -57,13 +58,13 @@ namespace TanteadorV4
                 /*Carga los equipos en la zona*/
                 while (Equipos.Count > 0)
                 {
-                    foreach (objZonas z in Zonas)
+                    foreach (ObjZonas z in Zonas)
                     {
                         if (Equipos.Count > 0)
                         {
                             zonaVM.Objeto = z;
                             
-                            objEquipos E = UnEquipo(Equipos);
+                            ObjEquipos E = UnEquipo(Equipos);
                             await zonaVM.AddEquipo(E);
 
                             /*Si la zona no tiene Cabecera, agregarla*/
@@ -76,39 +77,45 @@ namespace TanteadorV4
                     }
                 }
 
-
+                
                 /*Genera los Partidos*/
-                foreach (objZonas z in Zonas)
+                foreach (ObjZonas z in Zonas)
                 {
                     zonaVM.Objeto = z;
                     zonaVM.ItemAtras = Torneo;
-                    GenerarPartidos(zonaVM);
+                    int R = await GenerarPartidos(zonaVM);
+                }
+
+                ObjTorneos T = ((ObjTorneos)Torneo.Objeto);
+                if (T.IdaYVuelta == 1)
+                {
+                    var r = await GenerarPartidosVuelta(Torneo);
                 }
             }
         }
 
-        private objEquipos UnEquipo(List<objEquipos> Equipos)
+        private ObjEquipos UnEquipo(List<ObjEquipos> Equipos)
         {/*Devuelve un Equipo al azar de la lista de Equipos*/
             int Indice = RandomizeFHA.Next(0, Equipos.Count);
-            objEquipos Equipo = Equipos[Indice];
+            ObjEquipos Equipo = Equipos[Indice];
             Equipos.Remove(Equipo);
 
             return Equipo;
         }
 
-        private void GenerarPartidos(ZonasViewModel zonaVM)
+        private async Task<int> GenerarPartidos(VmZonas zonaVM)
         {
             int Mitad;
             int Cantidad;
 
-            zonaVM.setItemPropertiesFromObject();
+            //zonaVM.setItemPropertiesFromObject();
 
-            PartidosViewModel PartidosVM = new PartidosViewModel();
+            VmPartidos PartidosVM = new VmPartidos();
 
-            List<objEquipos> losEquipos = new List<objEquipos>();
+            List<ObjEquipos> losEquipos = new List<ObjEquipos>();
 
-            List<objEquipos> misEquiposAsignados = zonaVM.MisEquipos_Sync();
-            foreach (objEquipos Equipo in misEquiposAsignados)
+            List<ObjEquipos> misEquiposAsignados = await zonaVM.MisEquipos(); // zonaVM.MisEquipos_Sync();
+            foreach (ObjEquipos Equipo in misEquiposAsignados)
             {
                 losEquipos.Add(Equipo);
             }
@@ -118,7 +125,7 @@ namespace TanteadorV4
             Cantidad = losEquipos.Count;
             Mitad = Math.DivRem(Cantidad, 2, out Resto);
 
-            objEquipos Equipo0 = new objEquipos();
+            ObjEquipos Equipo0 = new ObjEquipos();
             Equipo0.ID = 0;
             Equipo0.Nombre = "- Fecha Libre -";
             if (Resto > 0)
@@ -127,7 +134,7 @@ namespace TanteadorV4
                 Mitad++;
             }
 
-            List<objPartidos> losPartidos = new List<objPartidos>();
+            List<ObjPartidos> losPartidos = new List<ObjPartidos>();
 
             Cantidad = losEquipos.Count;
             int CantidadFechas = 0;
@@ -144,7 +151,7 @@ namespace TanteadorV4
                 /*Arma los partidos de la fecha*/
                 for (int PartidosFecha = 0; PartidosFecha < Mitad; PartidosFecha++)
                 {
-                    objPartidos Partido = new objPartidos();
+                    ObjPartidos Partido = new ObjPartidos();
                     Partido.IdEquipo1 = losEquipos[PartidosFecha].ID;
                     Partido.IdEquipo2 = losEquipos[PartidosFecha + Mitad].ID;
 
@@ -157,17 +164,76 @@ namespace TanteadorV4
                 }
 
                 /*Hago el desplazamiento del array para generar la proxima fecha*/
-                objEquipos IdEquipoSegundo = losEquipos[1];
+                ObjEquipos IdEquipoSegundo = losEquipos[1];
                 losEquipos.RemoveAt(1);
                 losEquipos.Add(IdEquipoSegundo);
             }
 
-            zonaVM.GuardarPartidos(losPartidos);
+            await zonaVM.GuardarPartidos(losPartidos);
+
+            return 0;
         }
 
-        public void BorrarPartidos(TorneosViewModel Torneo)
+        private async Task<int> GenerarPartidosVuelta(VmTorneos Torneo)
         {
-            Torneo.BorrarPartidos();
+            VmPartidos PartidosVM = new VmPartidos();
+
+            int UltimaFecha = await Torneo.UltimaFecha();
+
+            List<ObjPartidos> Partidos_Ida = await Torneo.MisPartidos();
+            foreach (ObjPartidos P in Partidos_Ida)
+            {
+                ObjPartidos newP = new ObjPartidos();
+
+                newP.FechaOrden = P.FechaOrden + UltimaFecha;
+
+                newP.IdEquipo1 = P.IdEquipo2;
+                newP.IdEquipo2 = P.IdEquipo1;
+                newP.IdZona = P.IdZona;
+                //newP.PartidoRevancha = 1;
+
+                string NombrePartido = "";
+                VmEquipos Equipo = new VmEquipos();
+
+                if (P.IdEquipo2 > 0)
+                {
+                    Equipo.pEquipo.oEquipo.ID = P.IdEquipo2;
+                    await Equipo.pEquipo.Load();
+                    NombrePartido = Equipo.pEquipo.oEquipo.Nombre;
+                }
+                else
+                    NombrePartido = NombrePartido + " vs " + "- Fecha Libre -";
+
+                if (P.IdEquipo1 > 0)
+                {
+                    Equipo.pEquipo.oEquipo.ID = P.IdEquipo1;
+                    await Equipo.pEquipo.Load();
+                    NombrePartido = NombrePartido + " vs " + Equipo.pEquipo.oEquipo.Nombre;
+                }
+                else
+                    NombrePartido = NombrePartido +" vs " + "- Fecha Libre -";
+
+
+                newP.Nombre = NombrePartido;
+
+                PartidosVM.pPartidos.oPartido = newP;
+
+
+                PartidosVM.Objeto = newP;
+
+                VmZonas Zona = new VmZonas();
+                Zona.pZona.oZona.ID = P.IdZona;
+                PartidosVM.ItemAtras = Zona;
+                
+                PartidosVM.setItemPropertiesFromObject();
+                await PartidosVM.GuardarItem(EnumOperacion.Nuevo);
+            }
+            return 0;
+        }
+
+        public void BorrarTorneoGenerado(VmTorneos Torneo)
+        {
+            Torneo.BorrarTorneoGenerado();
         }
 
     }

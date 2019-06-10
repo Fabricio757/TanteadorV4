@@ -24,31 +24,31 @@ namespace TanteadorV4
         Boolean controlesLimpios = false;
          
         
-        private ViewModelBase ItemVM;
-        private TorneosViewModel ItemTorneo;
-        private ZonasViewModel ItemZona;
-        private EquiposViewModel ItemEquipos;
-        private PartidosViewModel ItemPartidos;
-        private ListaEquiposViewModel ItemListaEquipos;
-        private JugadoresViewModel ItemJugadores;
+        private VmBase ItemVM;
+        private VmTorneos ItemTorneo;
+        private VmZonas ItemZona;
+        private VmEquipos ItemEquipos;
+        private VmPartidos ItemPartidos;
+        private VmListaEquipos ItemListaEquipos;
+        private VmJugadores ItemJugadores;
 
 
         public Page1()
         {
             InitializeComponent();
 
-            ItemTorneo = new TorneosViewModel();
+            ItemTorneo = new VmTorneos();
             ItemTorneo.OnMostrar += ItemTorneo_OnMostrar;
-            ItemZona = new ZonasViewModel();
+            ItemZona = new VmZonas();
             ItemZona.OnMostrar += ItemZona_OnMostrar;
-            ItemEquipos = new EquiposViewModel();
+            ItemEquipos = new VmEquipos();
             ItemEquipos.OnMostrar += ItemEquipos_OnMostrar;
-            ItemPartidos = new PartidosViewModel();
+            ItemPartidos = new VmPartidos();
             ItemPartidos.OnMostrar += ItemPartidos_OnMostrar;
 
-            ItemListaEquipos = new ListaEquiposViewModel();
+            ItemListaEquipos = new VmListaEquipos();
 
-            ItemJugadores = new JugadoresViewModel();
+            ItemJugadores = new VmJugadores();
             ItemJugadores.OnMostrar += ItemJugadores_OnMostrar;
         }
 
@@ -83,23 +83,31 @@ namespace TanteadorV4
 
             btnListaEquipos.IsEnabled = ! controlesLimpios;
             btnPartidos.IsEnabled = ! controlesLimpios;
+            lstEquipo.IsEnabled = ! controlesLimpios;
 
             TituloABM.Text = "Zonas";
         }
 
-        private void ItemTorneo_OnMostrar(object sender, EventArgs e)
+        private async void ItemTorneo_OnMostrar(object sender, EventArgs e)
         {
             OcultarStacks();
             stkTorneos.IsVisible = true;
             stkNombre.IsVisible = true;
-
+            
             btnZonas.IsEnabled = ! controlesLimpios;
             btnEquipos.IsEnabled = ! controlesLimpios;
 
-            if (ItemTorneo.TienePartidos())
-                btnGenerarTorneo.Text = "Borrar Partidos";
-            else
-                btnGenerarTorneo.Text = "Generar Torneo";
+            if(ItemTorneo != null)
+                if (ItemTorneo.Objeto.ID > 0)
+                {
+                    Boolean b = await ItemTorneo.TienePartidos();
+
+                    if (b)
+                        btnGenerarTorneo.Text = "Borrar Partidos";
+                    else
+                        btnGenerarTorneo.Text = "Generar Torneo";
+                }
+
 
             TituloABM.Text = "Torneos";
         }
@@ -119,6 +127,7 @@ namespace TanteadorV4
             TituloABM.Text = "Torneos";
 
             ItemVM = ItemTorneo;
+
             await RefreshList();
 
             OcultarStacks();
@@ -134,6 +143,8 @@ namespace TanteadorV4
 
         private async Task VistaLista()
         {
+            ItemVM.Mostrar(null); //Muestra las controles particulares de cada Objeto. 
+
             stkLista.IsVisible = true;
             stkControles.IsVisible = false;
 
@@ -173,94 +184,148 @@ namespace TanteadorV4
 
         private void Lista_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-            bool recalculo = false;
+            try
+            {
+                VistaItem();
+                ItemVM.Objeto = ((ObjId)e.SelectedItem);
 
-            VistaItem();
-            ItemVM.Objeto = ((objId)e.SelectedItem);
+                BindingContext = ItemVM;
+                ((VmBase)BindingContext).setItemPropertiesFromObject();
 
-            BindingContext = ItemVM;
-            ((ViewModelBase)BindingContext).setItemPropertiesFromObject();
-
-            controlesLimpios = false;
-            ItemVM.Mostrar(null, recalculo);
+                controlesLimpios = false;
+                ItemVM.Mostrar(null);
+            }
+            catch (Exception Ex)
+            {
+                this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private async void btnUpdate_Clicked(object sender, EventArgs e)
         {
-            string Mensaje = "";
-
-            ItemVM = (ViewModelBase)BindingContext;
-
-            if (controlesLimpios)
+            try
             {
-                Mensaje = await ItemVM.GuardarItem(EnumOperacion.Nuevo);
-            }
-            else
-            {
-                Mensaje = await ItemVM.GuardarItem(EnumOperacion.Actualiza);
-            }
+                string Mensaje = "";
 
-            if (Mensaje == "")
-            {
-                Mensaje = "Guardado";
-                await this.DisplayAlert("Mensaje", Mensaje, "Ok");
-                await VistaLista();
+                ItemVM = (VmBase)BindingContext;
+
+                if (controlesLimpios)
+                {
+                    Mensaje = await ItemVM.GuardarItem(EnumOperacion.Nuevo);
+                }
+                else
+                {
+                    Mensaje = await ItemVM.GuardarItem(EnumOperacion.Actualiza);
+                }
+
+                if (Mensaje == "")
+                {
+                    Mensaje = "Guardado";
+                    await this.DisplayAlert("Mensaje", Mensaje, "Ok");
+                    await VistaLista();
+                }
+                else
+                    await this.DisplayAlert("Mensaje", Mensaje, "Ok");
             }
-            else
-                await this.DisplayAlert("Mensaje", Mensaje, "Ok");
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private void btnLimpiar_Clicked(object sender, EventArgs e)
-        {
-            LimpiarControles();
-            VistaItem();
+        {//Es el botón de Nuevo
+            try
+            {
+                LimpiarControles();
+                VistaItem();
+            }
+            catch (Exception Ex)
+            {
+                this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private async void btnDelete_Clicked(object sender, EventArgs e)
         {
-            ItemVM.DeleteItem();
-            await this.DisplayAlert("Mensaje", "Borrado", "Ok");
-            await VistaLista();
-        
+            try
+            {
+                string Mensaje = await ItemVM.DeleteItem();
+
+                await this.DisplayAlert(Mensaje, "Resultado", "Ok");
+                await VistaLista();
+            }
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
+
         }
 
         private async void btnAtras_Clicked(object sender, EventArgs e)
         {
-            controlesLimpios = false;
-            if (enumVista == EnumVista.vistaItem)
+            try
             {
-                await VistaLista();
-                await RefreshList();
-                
+                controlesLimpios = false;
+                if (enumVista == EnumVista.vistaItem)
+                {
+                    await VistaLista();
+                    await RefreshList();
+
+                }
+                else
+                {
+                    ItemVM = ItemVM.ItemAtras;
+                    ItemVM.setItemPropertiesFromObject();
+                    BindingContext = ItemVM;
+                    ItemVM.Mostrar(null);
+                    VistaItem();
+                };
             }
-            else
+            catch (Exception Ex)
             {
-                ItemVM = ItemVM.ItemAtras;
-                ItemVM.setItemPropertiesFromObject();
-                BindingContext = ItemVM;
-                ItemVM.Mostrar(null);
-                VistaItem();
-            };
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private void OcultarStacks()
         {
-            stkNombre.IsVisible = false;
-            stkTorneos.IsVisible = false;
-            stkZonas.IsVisible = false;
-            stkEquipos.IsVisible = false;
-            stkListaEquipos.IsVisible = false;
-            stkPartidos.IsVisible = false;
-            stkJugadores.IsVisible = false;
+            try
+            {
+                stkNombre.IsVisible = false;
+                stkTorneos.IsVisible = false;
+                stkZonas.IsVisible = false;
+                stkEquipos.IsVisible = false;
+                stkListaEquipos.IsVisible = false;
+                stkPartidos.IsVisible = false;
+                stkJugadores.IsVisible = false;
+            }
+            catch (Exception Ex)
+            {
+                this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private void LimpiarControles()
         {
-            ItemVM.Objeto = null;
-            ItemVM.NewObject();
-            BindingContext = ItemVM;
-            controlesLimpios = true;
-            ItemVM.Mostrar(null,true);
+            try
+            {
+                //Recreo el Item y le preservo el ItemAtras.
+                VmBase itemAtras = ItemVM.ItemAtras;
+                ItemVM.NewObject();
+                if (itemAtras != null)
+                    ItemVM.ItemAtras = itemAtras;
+
+
+                BindingContext = ItemVM;
+                ((VmBase)BindingContext).setItemPropertiesFromObject();
+                controlesLimpios = true;
+                ItemVM.Mostrar(null);
+            }
+            catch (Exception Ex)
+            {
+                this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         #endregion
@@ -270,63 +335,98 @@ namespace TanteadorV4
 
         private async void btnZonas_Clicked(object sender, EventArgs e)
         {
-            ItemZona.ItemAtras = ItemTorneo;
-            ItemVM = ItemZona;
-            ItemVM.Mostrar(null);
+            try
+            {
+                ItemZona.ItemAtras = ItemTorneo;
 
-            await VistaLista();
-            
+                //Cargo los parametros para filtrar las zonas de este torneo
+                ItemZona.Persist.NombresParametros = new[] { "IdTorneo" };
+                ItemZona.Persist.ValoresParametros = new object[] { ItemTorneo.Objeto.ID };
+
+                ItemVM = ItemZona;
+                await VistaLista();
+            }
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private async void btnEquipos_Clicked(object sender, EventArgs e)
         {
-            ItemEquipos.ItemAtras = ItemTorneo;
-            ItemVM = ItemEquipos;
-            ItemVM.Mostrar(null);
+            try
+            {
+                ItemEquipos.ItemAtras = ItemTorneo;
+                ItemVM = ItemEquipos;
+                ItemVM.Mostrar(null);
 
-            await VistaLista();
+                Object[] valoresParametros = new Object[] { ItemTorneo.pTorneo.oTorneo.ID };
+                ItemEquipos.pEquipo.AddParametros(new[] { "IdTorneo" }, valoresParametros);
+
+                await VistaLista();
+            }
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private async void btnGenerarTorneo_Clicked(object sender, EventArgs e)
         {
-            Funciones f = new Funciones();
-            if (btnGenerarTorneo.Text == "Generar Torneo")
+            try
             {
-                f.GenerarTorneos(ItemTorneo);
-                await this.DisplayAlert("Mensaje", "Torneo Generado", "Ok");
-                btnGenerarTorneo.Text = "Borrar Torneo";
+                Funciones f = new Funciones();
+                if (btnGenerarTorneo.Text == "Generar Torneo")
+                {
+                    f.GenerarTorneos(ItemTorneo);
+                    await this.DisplayAlert("Mensaje", "Torneo Generado", "Ok");
+                    btnGenerarTorneo.Text = "Borrar Torneo";
+                }
+                else
+                {
+                    f.BorrarTorneoGenerado(ItemTorneo);
+                    await this.DisplayAlert("Mensaje", "Torneo Borrado", "Ok");
+                    btnGenerarTorneo.Text = "Generar Torneo";
+                }
             }
-            else
+            catch (Exception Ex)
             {
-                f.BorrarPartidos(ItemTorneo);
-                await this.DisplayAlert("Mensaje", "Torneo Borrado", "Ok");
-                btnGenerarTorneo.Text = "Generar Torneo";
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
             }
         }
 
         private async void btnListaEquipos_Clicked(object sender, EventArgs e)
         {
-            OcultarStacks();
-            stkListaEquipos.IsVisible = true;
+            try
+            {
+                OcultarStacks();
+                stkListaEquipos.IsVisible = true;
 
-            ItemListaEquipos.ItemAtras = ItemZona;
-            ItemVM = ItemListaEquipos;
-            ItemVM.ItemAtras = ItemZona;
+                ItemListaEquipos.ItemAtras = ItemZona;
+                ItemVM = ItemListaEquipos;
+                ItemVM.ItemAtras = ItemZona;
 
-            
-            ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
-            ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
-            //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
 
-            VistaDobleLista();
+                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+                ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
+                //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
 
-            TituloABM.Text = "Lista de Equipos";
+                VistaDobleLista();
+
+                TituloABM.Text = "Lista de Equipos";
+            }
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");                
+            }
         }
 
         private async void btnPartidos_Clicked(object sender, EventArgs e)
         {
             ItemPartidos.ItemAtras = ItemZona;
             ItemVM = ItemPartidos;
+
+            ItemPartidos.Persist.AddParametro_Only("IdZona", ItemZona.Objeto.ID);
 
             await VistaLista();
         }
@@ -341,7 +441,7 @@ namespace TanteadorV4
 
         private async void ListaEquipos_Torneo_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-            objEquipos Item = (objEquipos)e.SelectedItem;
+            ObjEquipos Item = (ObjEquipos)e.SelectedItem;
             await ItemListaEquipos.AddEquipo(Item);
 
             ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
@@ -349,25 +449,32 @@ namespace TanteadorV4
         }
 
         private async void ListaEquipos_Zona_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            objEquipos Item = (objEquipos)e.SelectedItem;
+        {//Saco un equipo de la zona 
+            try
+            { 
+                ObjEquipos Item = (ObjEquipos)e.SelectedItem;
 
-            EquiposViewModel EquiposVM = new EquiposViewModel();
-            EquiposVM.Objeto = Item;
+                VmEquipos EquiposVM = new VmEquipos();
+                EquiposVM.Objeto = Item;
+                List<ObjPartidos> misPartidos = await EquiposVM.MisPartidos();
 
-            List<objPartidos> misPartidos = await EquiposVM.MisPartidos(Item);
-
-            if (misPartidos.Count == 0)
-            {
                 
-                await ItemListaEquipos.RemoveEquipo(Item);
 
-                //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
-                ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
-                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+                if ((misPartidos.Count == 0) && (((ObjZonas)ItemZona.Objeto).IdEquipoCabezaDeSerie != Item.ID))
+                {                
+                    await ItemListaEquipos.RemoveEquipo(Item);
+
+                    //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
+                    ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
+                    ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+                }
+                else
+                    await DisplayAlert("Mensaje", "No se puede eliminar, es cabeza de serie o ya tiene partidos asignados", "Ok");
             }
-            else
-                await DisplayAlert("Mensaje", "No se puede eliminar, tiene partidos asignados", "Ok");
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         #endregion

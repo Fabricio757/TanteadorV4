@@ -60,8 +60,17 @@
                         <DatePicker x:Name="dtpFecha" Date="{Binding Objeto.Fecha}"></DatePicker>
                         <Label Text="Titulo1"></Label>
                         <Entry x:Name="edtTitulo1" Text="{Binding Objeto.Titulo1}"></Entry>
-                        <Label Text="Titulo2"></Label>
+                        <Label Text="Titulo2"></Label>                        
                         <Entry x:Name="edtTitulo2" Text="{Binding Objeto.Titulo2}"></Entry>
+
+                        <Label Text="Cantidad de Clasificados por Zona"></Label>
+                        <Entry x:Name="edtCantidadClasificadosXZona" Text="{Binding Objeto.CantidadClasificadosXZona}"></Entry>
+                        <Label Text="Vuelta en la zonas"></Label>
+                        <Switch x:Name="edtIdaYVuelta"  IsToggled="{Binding Objeto.IdaYVuelta}"></Switch>
+                        <Label Text="Vuelta en la Llave"></Label>
+                        <Switch x:Name="edtIdaYVuelta_Llave"  IsToggled="{Binding Objeto.IdaYVuelta_Llave}"></Switch>
+                        
+
                         <Button x:Name="btnZonas" Text="Zonas" Clicked="btnZonas_Clicked" CornerRadius="10" Margin="1"></Button>
                         <Button x:Name="btnEquipos" Text="Equipos" Clicked="btnEquipos_Clicked" CornerRadius="10" Margin="1"></Button>
                         <Button x:Name="btnGenerarTorneo" Text="GenerarTorneo" Clicked="btnGenerarTorneo_Clicked"  CornerRadius="10" Margin="1"></Button>
