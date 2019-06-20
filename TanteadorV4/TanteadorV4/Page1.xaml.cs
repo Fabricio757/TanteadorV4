@@ -6,14 +6,47 @@ using System.Threading.Tasks;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using System.Globalization;
+
 
 namespace TanteadorV4
 {
     public enum EnumABM { Torneo, Zona, Equipo, ListaEquipos, Partido, Jugadores };
-    public enum EnumVista { vistaLista, vistaItem, DobleLista};
+    public enum EnumVista { vistaLista, vistaItem, DobleLista };
     public enum EnumOperacion { Nuevo, Actualiza };
-    public enum EnumBindingType { Objeto, Item};
+    public enum EnumBindingType { Objeto, Item };
 
+    public class ListHeader
+    {
+        public String col_1 { get; set; }
+        public String col_2 { get; set; }
+        public String col_3 { get; set; }
+
+        public GridLength w_col_1 { get; set; }
+        public GridLength w_col_2 { get; set; }
+        public GridLength w_col_3 { get; set; }
+
+        public GridLength w2_col_1 { get; set; }
+        public GridLength w2_col_2 { get; set; }
+    }
+
+    public class IntToGridLengthConverter : IValueConverter
+    {
+        public IntToGridLengthConverter()
+        {
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var intValue = System.Convert.ToInt32(value);
+            return new GridLength(intValue, GridUnitType.Star);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class Page1 : ContentPage
@@ -61,7 +94,6 @@ namespace TanteadorV4
             stkPartidos.IsVisible = true;
             stkNombre.IsVisible = true;
             TituloABM.Text = "Partidos";
-
         }
 
         private void ItemEquipos_OnMostrar(object sender, EventArgs e)
@@ -73,6 +105,9 @@ namespace TanteadorV4
             btnJugadores.IsEnabled = ! controlesLimpios;
 
             TituloABM.Text = "Equipos";
+
+            Lista.HeaderTemplate = new DataTemplate();
+            
         }
 
         private void ItemZona_OnMostrar(object sender, EventArgs e)
@@ -110,6 +145,20 @@ namespace TanteadorV4
 
 
             TituloABM.Text = "Torneos";
+
+            ListHeader L = new ListHeader();
+            L.col_1 = "Nombre55";
+            L.col_2 = "Puntos";
+            L.col_3 = "";
+
+            L.w_col_1 = new GridLength(4, GridUnitType.Star);
+            L.w_col_2 = new GridLength(1, GridUnitType.Star);
+
+            L.w2_col_1 = new GridLength(4, GridUnitType.Star);
+            L.w2_col_2 = new GridLength(1, GridUnitType.Star);
+
+            BindingContext = L;
+
         }
 
         private void ItemJugadores_OnMostrar(object sender, EventArgs e)

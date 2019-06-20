@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:TanteadorV4"
              x:Class="TanteadorV4.Page1">
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -12,11 +13,29 @@
                 <Setter Property="FontSize" Value="Large" />
                 <Setter Property="TextColor" Value="Wheat" />
             </Style>
+            
             <Style x:Key="commonLabelStyle" TargetType="Label">
                 <Setter Property="TextColor" Value="Wheat" />
                 <Setter Property="Margin" Value="0,-5,0,-5"/>
+                <Setter Property="FontSize" Value="Micro" />
             </Style>
-            
+
+            <Style x:Key="commonEntryStyle" TargetType="Entry">
+                <Setter Property="TextColor" Value="Blue" />
+                <Setter Property="Margin" Value="0,-5,0,-5"/>
+                <Setter Property="FontSize" Value="Small" />
+                <Setter Property="VerticalOptions" Value="StartAndExpand"></Setter>
+            </Style>
+
+            <Style x:Key="commonEntryButton" TargetType="Button">
+                <Setter Property="TextColor" Value="Blue" />
+                <Setter Property="Margin" Value="1"/>
+                <Setter Property="FontSize" Value="Small" />
+                <Setter Property="CornerRadius" Value="10"></Setter>
+            </Style>
+
+            <local:IntToGridLengthConverter x:Key="gridLengthConverter" />
+
         </ResourceDictionary>
     </ContentPage.Resources>
     
@@ -24,23 +43,48 @@
     <ContentPage.Content>
        <Grid Padding="10"  BackgroundColor="DarkGoldenrod">
             <Grid.RowDefinitions >
-                <RowDefinition Height="0.05*"></RowDefinition>
-                <RowDefinition Height="0.85*"></RowDefinition>
-                <RowDefinition Height="0.1*"></RowDefinition>
+                <RowDefinition Height="2*"></RowDefinition>
+                <RowDefinition Height="16*"></RowDefinition>
+                <RowDefinition Height="2*"></RowDefinition>
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0" x:Name="TituloABM" Text="abm" Style="{StaticResource TitleStyle}"></Label>
 
             <Grid Grid.Row="1" ColumnSpacing="1"  BackgroundColor="DarkGoldenrod">
                 
-                <StackLayout x:Name="stkLista" Grid.Column="0" BackgroundColor="DarkGoldenrod" IsVisible="True">                    
-                    <ListView x:Name="Lista" Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
+                <StackLayout x:Name="stkLista" Grid.Column="0" BackgroundColor="DarkGoldenrod" IsVisible="True">
+                    <ListView x:Name="Lista" Header="{Binding}"  Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
+
+                        <ListView.HeaderTemplate>
+                            <DataTemplate>
+                                <ContentView BackgroundColor="Beige">
+                                    <Grid x:Name="header_1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition x:Name="Columna1" Width="{Binding w_col_1}"></ColumnDefinition>
+                                            <ColumnDefinition Width="{Binding w_col_2}"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Margin="10" Grid.Column="0" Text="{Binding col_1}" TextColor="Red"/>
+                                        <Label Margin="10" Grid.Column="1" Text="{Binding col_2}"  TextColor="Black"/>
+                                    </Grid>
+                                </ContentView>
+                            </DataTemplate>
+                        </ListView.HeaderTemplate>
+
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <ViewCell>
-                                    <StackLayout Margin="10,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
-                                        <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
-                                        <Label Text="{Binding FechaOrden}" VerticalTextAlignment="End" HorizontalOptions="End" BackgroundColor="Accent"  />
+                                    <StackLayout Margin="10,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand" BackgroundColor="Cyan">
+                                        <ContentView x:Name="CVV" BackgroundColor="Beige">
+                                            <Grid x:Name="GrillaLista" BackgroundColor="DarkTurquoise" HorizontalOptions="FillAndExpand">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="{Binding w2_col_1}"></ColumnDefinition>
+                                                    <ColumnDefinition Width="{Binding w2_col_2}"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" Grid.Column="0" HorizontalOptions="FillAndExpand" BackgroundColor="Fuchsia"/>
+                                                <Label Text="{Binding FechaOrden}" VerticalTextAlignment="Center" Grid.Column="1" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" BackgroundColor="Accent"  />
+                                            </Grid>
+                                        </ContentView>
                                     </StackLayout>
                                 </ViewCell>
                             </DataTemplate>
@@ -50,30 +94,54 @@
                    
                 <StackLayout x:Name="stkControles" IsVisible="False">
                         
-                    <StackLayout x:Name="stkNombre">
-                        <Label Text="Nombre"></Label>
-                        <Entry x:Name="edtNombre" Text="{Binding Objeto.Nombre}"></Entry>
+                    <StackLayout x:Name="stkNombre" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                        <Label Text="Nombre" Style="{StaticResource commonLabelStyle}"></Label>
+                        <Entry x:Name="edtNombre" Text="{Binding Objeto.Nombre}" HorizontalOptions="FillAndExpand" Style="{StaticResource commonEntryStyle}"></Entry>
                     </StackLayout>
                     
                     <StackLayout x:Name="stkTorneos">
-                        <Label Text="Fecha" Style="{StaticResource commonLabelStyle}"></Label>
-                        <DatePicker x:Name="dtpFecha" Date="{Binding Objeto.Fecha}"></DatePicker>
-                        <Label Text="Titulo1"></Label>
-                        <Entry x:Name="edtTitulo1" Text="{Binding Objeto.Titulo1}"></Entry>
-                        <Label Text="Titulo2"></Label>                        
-                        <Entry x:Name="edtTitulo2" Text="{Binding Objeto.Titulo2}"></Entry>
+                        <Grid>
+                            <Grid.RowDefinitions >
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
 
-                        <Label Text="Cantidad de Clasificados por Zona"></Label>
-                        <Entry x:Name="edtCantidadClasificadosXZona" Text="{Binding Objeto.CantidadClasificadosXZona}"></Entry>
-                        <Label Text="Vuelta en la zonas"></Label>
-                        <Switch x:Name="edtIdaYVuelta"  IsToggled="{Binding Objeto.IdaYVuelta}"></Switch>
-                        <Label Text="Vuelta en la Llave"></Label>
-                        <Switch x:Name="edtIdaYVuelta_Llave"  IsToggled="{Binding Objeto.IdaYVuelta_Llave}"></Switch>
-                        
+                            <Label Text="Fecha" Grid.Row="0" Grid.Column="0" Style="{StaticResource commonLabelStyle}"></Label>
+                            <DatePicker x:Name="dtpFecha" Date="{Binding Objeto.Fecha}" Grid.Row="0" Grid.Column="1"></DatePicker>
+                            <Label Text="Titulo1" Grid.Row="1" Grid.Column="0" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Entry x:Name="edtTitulo1" Text="{Binding Objeto.Titulo1}" Grid.Row="1" Grid.Column="1" Style="{StaticResource commonEntryStyle}"></Entry>
+                            <Label Text="Titulo2" Grid.Row="2" Grid.Column="0" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Entry x:Name="edtTitulo2" Text="{Binding Objeto.Titulo2}" Grid.Row="2" Grid.Column="1" Style="{StaticResource commonEntryStyle}"></Entry>
 
-                        <Button x:Name="btnZonas" Text="Zonas" Clicked="btnZonas_Clicked" CornerRadius="10" Margin="1"></Button>
-                        <Button x:Name="btnEquipos" Text="Equipos" Clicked="btnEquipos_Clicked" CornerRadius="10" Margin="1"></Button>
-                        <Button x:Name="btnGenerarTorneo" Text="GenerarTorneo" Clicked="btnGenerarTorneo_Clicked"  CornerRadius="10" Margin="1"></Button>
+                            <Label Text="Cantidad de Clasificados por Zona" Grid.Row="3" Grid.Column="0" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Entry x:Name="edtCantidadClasificadosXZona" Text="{Binding Objeto.CantidadClasificadosXZona}" Grid.Row="3" Grid.Column="1" Style="{StaticResource commonEntryStyle}"></Entry>
+                            <Label Text="Vuelta en la zonas" Grid.Row="4" Grid.Column="0" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Switch x:Name="edtIdaYVuelta"  IsToggled="{Binding Objeto.IdaYVuelta}" Grid.Row="4" Grid.Column="1"></Switch>
+                            <Label Text="Vuelta en la Llave" Grid.Row="5" Grid.Column="0" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Switch x:Name="edtIdaYVuelta_Llave"  IsToggled="{Binding Objeto.IdaYVuelta_Llave}" Grid.Row="5" Grid.Column="1"></Switch>
+
+                            <Label Grid.Column="0" Grid.Row="6" WidthRequest="50" Text="Puntos por partido Ganado" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Entry Grid.Column="1" Grid.Row="6" WidthRequest="50" x:Name="edtPuntos_xGanados"  Text="{Binding Objeto.Puntos_xGanados}"  Style="{StaticResource commonEntryStyle}"></Entry>
+                            <Label Grid.Column="0" Grid.Row="7" Text="Puntos por partido Empatado" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Entry Grid.Column="1" Grid.Row="7" x:Name="edtPuntos_xEmpatados"  Text="{Binding Objeto.Puntos_xEmpatados}" Style="{StaticResource commonEntryStyle}"></Entry>
+                            <Label Grid.Column="0" Grid.Row="8" Text="Puntos por partido Perdido" Style="{StaticResource commonLabelStyle}"></Label>
+                            <Entry Grid.Column="1" Grid.Row="8" x:Name="edtPuntos_xPerdidos"  Text="{Binding Objeto.Puntos_xPerdidos}" Style="{StaticResource commonEntryStyle}"></Entry>
+                        </Grid>
+
+
+                        <Button x:Name="btnZonas" Text="Zonas" Clicked="btnZonas_Clicked" Style="{StaticResource commonEntryButton}"></Button>
+                        <Button x:Name="btnEquipos" Text="Equipos" Clicked="btnEquipos_Clicked" Style="{StaticResource commonEntryButton}"></Button>
+                        <Button x:Name="btnGenerarTorneo" Text="GenerarTorneo" Clicked="btnGenerarTorneo_Clicked" Style="{StaticResource commonEntryButton}"></Button>
                     </StackLayout>
 
                     <StackLayout x:Name="stkZonas" IsVisible="False">
@@ -131,7 +199,11 @@
                         <Entry x:Name="edtGolesEquipo1" Text="{Binding Objeto.GolesEquipo1}"></Entry>
                         <Label Text="Goles Equipo 2"></Label>
                         <Entry x:Name="edtGolesEquipo2" Text="{Binding Objeto.GolesEquipo2}"></Entry>
-
+                        <Label Text="Finalizado"></Label>
+                        <Switch x:Name="edtFinalizado"  IsToggled="{Binding Objeto.Finalizado}" ></Switch>
+                        <Label Text="Reloj"></Label>
+                        <TimePicker x:Name="edtReloj" Time="{Binding Objeto.Reloj}"></TimePicker>
+                        
                     </StackLayout>
 
                     <StackLayout x:Name="stkEquipos" IsVisible="False">
@@ -156,10 +228,10 @@
                         <ColumnDefinition Width="0.25*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
 
-                    <Button x:Name="btnUpdate" Text="Guardar" Margin="0" Grid.Column="0" Clicked="btnUpdate_Clicked" CornerRadius="10" IsEnabled="False"></Button>
-                    <Button x:Name="btnLimpiar" Text="Nuevo" Grid.Column="1" Clicked="btnLimpiar_Clicked" CornerRadius="10" ></Button>
-                    <Button x:Name="btnDelete" Text="Borrar" Grid.Column="2" Clicked="btnDelete_Clicked" CornerRadius="10" IsEnabled="False"></Button>
-                    <Button x:Name="btnAtras" Text="Atrás"  Grid.Column="3" Clicked="btnAtras_Clicked" CornerRadius="10"></Button>
+                    <Button x:Name="btnUpdate" Text="Guardar" Margin="0" Grid.Column="0" Clicked="btnUpdate_Clicked" IsEnabled="False" Style="{StaticResource commonEntryButton}"></Button>
+                    <Button x:Name="btnLimpiar" Text="Nuevo" Grid.Column="1" Clicked="btnLimpiar_Clicked" CornerRadius="10" Style="{StaticResource commonEntryButton}"></Button>
+                    <Button x:Name="btnDelete" Text="Borrar" Grid.Column="2" Clicked="btnDelete_Clicked" CornerRadius="10" IsEnabled="False" Style="{StaticResource commonEntryButton}"></Button>
+                    <Button x:Name="btnAtras" Text="Atrás"  Grid.Column="3" Clicked="btnAtras_Clicked" CornerRadius="10" Style="{StaticResource commonEntryButton}"></Button>
                 </Grid>
             </Grid>
             

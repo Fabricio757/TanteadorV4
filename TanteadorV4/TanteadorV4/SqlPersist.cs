@@ -459,6 +459,10 @@ namespace TanteadorV4
         public int IdaYVuelta { get; set; }
         public int IdaYVuelta_Llave { get; set; }
 
+        public Double Puntos_xGanados { get; set; }
+        public Double Puntos_xEmpatados { get; set; }
+        public Double Puntos_xPerdidos { get; set; }
+
         public int ReadOnly { get; set; }
     }
 
@@ -497,6 +501,7 @@ namespace TanteadorV4
         public int IdZona { get; set; }
         public string PartidoRevancha { get; set; }
         public DateTime Reloj { get; set; }
+        public Boolean Finalizado { get; set; }
     }
 
     [Table("Jugadores")]
