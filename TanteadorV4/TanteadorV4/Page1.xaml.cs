@@ -16,19 +16,6 @@ namespace TanteadorV4
     public enum EnumOperacion { Nuevo, Actualiza };
     public enum EnumBindingType { Objeto, Item };
 
-    public class ListHeader
-    {
-        public String col_1 { get; set; }
-        public String col_2 { get; set; }
-        public String col_3 { get; set; }
-
-        public GridLength w_col_1 { get; set; }
-        public GridLength w_col_2 { get; set; }
-        public GridLength w_col_3 { get; set; }
-
-        public GridLength w2_col_1 { get; set; }
-        public GridLength w2_col_2 { get; set; }
-    }
 
     public class IntToGridLengthConverter : IValueConverter
     {
@@ -64,6 +51,8 @@ namespace TanteadorV4
         private VmPartidos ItemPartidos;
         private VmListaEquipos ItemListaEquipos;
         private VmJugadores ItemJugadores;
+
+        private VmLista vmLista = new VmLista();
 
 
         public Page1()
@@ -121,6 +110,13 @@ namespace TanteadorV4
             lstEquipo.IsEnabled = ! controlesLimpios;
 
             TituloABM.Text = "Zonas";
+
+            vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo="Zona", Width=1 } );
+
+            Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+
+            if (enumVista == EnumVista.vistaLista)
+                BindingContext = vmLista;
         }
 
         private async void ItemTorneo_OnMostrar(object sender, EventArgs e)
@@ -142,22 +138,15 @@ namespace TanteadorV4
                     else
                         btnGenerarTorneo.Text = "Generar Torneo";
                 }
-
-
+            
             TituloABM.Text = "Torneos";
+            
+            vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo = "Torneo", Width= 1 }, new Columna_Lista() { NombreAtributo = "Titulo1", Titulo = "Titulo", Width = 1 });
 
-            ListHeader L = new ListHeader();
-            L.col_1 = "Nombre55";
-            L.col_2 = "Puntos";
-            L.col_3 = "";
+            Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
 
-            L.w_col_1 = new GridLength(4, GridUnitType.Star);
-            L.w_col_2 = new GridLength(1, GridUnitType.Star);
-
-            L.w2_col_1 = new GridLength(4, GridUnitType.Star);
-            L.w2_col_2 = new GridLength(1, GridUnitType.Star);
-
-            BindingContext = L;
+            if (enumVista == EnumVista.vistaLista)
+                BindingContext = vmLista;        
 
         }
 
@@ -187,13 +176,11 @@ namespace TanteadorV4
 
         private async Task RefreshList()
         {
-            Lista.ItemsSource = await ItemVM.RetornarLista();
+            vmLista.ItemsSource = await ItemVM.RetornarLista();
         }
 
         private async Task VistaLista()
         {
-            ItemVM.Mostrar(null); //Muestra las controles particulares de cada Objeto. 
-
             stkLista.IsVisible = true;
             stkControles.IsVisible = false;
 
@@ -203,6 +190,10 @@ namespace TanteadorV4
 
             enumVista = EnumVista.vistaLista;
             await RefreshList();
+
+            ItemVM.Mostrar(null); //Muestra las controles particulares de cada Objeto. 
+
+            BindingContext = vmLista;
         }
 
         private void VistaItem()

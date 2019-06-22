@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Linq;
 using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace TanteadorV4
 {
@@ -15,6 +16,93 @@ namespace TanteadorV4
         VmBase ItemAtras { set; get; }
     }
 
+    public class Columna_Lista
+    {
+        public String Titulo { get; set; } = "";
+        public String NombreAtributo { get; set; } = "";
+        public Double Width { get; set; } = 0;
+
+        public void Reset()
+        {
+            Titulo = ""; NombreAtributo = ""; Width = 0;
+        }
+    }
+
+    public class VmLista : INotifyPropertyChanged//, INavigationVM
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+                
+        public IEnumerable<ObjId> ItemsSource { get; set; }
+
+        private Columna_Lista Columna_1 = new Columna_Lista(), Columna_2 = new Columna_Lista(), Columna_3 = new Columna_Lista();
+
+        public Columna_Lista Col1 { get { return Columna_1; } }
+        public Columna_Lista Col2 { get { return Columna_2; } }
+        public Columna_Lista Col3 { get { return Columna_3; } }
+
+        public void Columnas(Columna_Lista Col_1, Columna_Lista Col_2 = null, Columna_Lista Col_3 = null)
+        {
+            Columna_1.Reset();
+            Columna_2.Reset();
+            Columna_3.Reset();
+
+            Columna_1 = Col_1;
+            if (Col_2 != null)
+                Columna_2 = Col_2;
+            if (Col_3 != null)
+                Columna_3 = Col_3;
+        }
+
+        public DataTemplate DateTemplate_configuracion()
+        {
+            var objDataTemplate = new DataTemplate(() =>
+            {                
+                var grid = new Grid();
+
+                var col1 = new Label() { Margin = 20 };//,  FontAttributes = FontAttributes.Bold };
+                var col2 = new Label() { Margin = 20 };
+                var col3 = new Label() { Margin = 20 };// { HorizontalTextAlignment = TextAlignment.End };
+
+                col1.SetBinding(Label.TextProperty, Columna_1.NombreAtributo);
+
+                if (Columna_2.NombreAtributo != "")
+                    col2.SetBinding(Label.TextProperty, Columna_2.NombreAtributo);
+
+                if (Columna_3.NombreAtributo != "")
+                    col3.SetBinding(Label.TextProperty, Columna_2.NombreAtributo);
+
+
+                grid.Children.Add(col1);
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(Columna_1.Width, GridUnitType.Star) });
+
+                if (Columna_2.NombreAtributo != null)
+                {
+                    grid.Children.Add(col2, 1, 0);
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(Columna_2.Width, GridUnitType.Star) });
+                }
+
+                if (Columna_3.NombreAtributo != null)
+                {
+                    grid.Children.Add(col3, 2, 0);
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(Columna_3.Width, GridUnitType.Star) });
+                }
+
+                
+                return new ViewCell { View = grid };
+            });
+
+            return objDataTemplate;
+        }
+    }
 
     public class VmBase : INotifyPropertyChanged, INavigationVM
     {

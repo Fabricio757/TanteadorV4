@@ -5,6 +5,7 @@
              x:Class="TanteadorV4.Page1">
     <ContentPage.Resources>
         <ResourceDictionary>
+            
             <Style x:Key="TitleStyle" TargetType="Label">
                 <Setter Property="HorizontalOptions"
                             Value="Center" />
@@ -34,8 +35,6 @@
                 <Setter Property="CornerRadius" Value="10"></Setter>
             </Style>
 
-            <local:IntToGridLengthConverter x:Key="gridLengthConverter" />
-
         </ResourceDictionary>
     </ContentPage.Resources>
     
@@ -53,42 +52,21 @@
             <Grid Grid.Row="1" ColumnSpacing="1"  BackgroundColor="DarkGoldenrod">
                 
                 <StackLayout x:Name="stkLista" Grid.Column="0" BackgroundColor="DarkGoldenrod" IsVisible="True">
-                    <ListView x:Name="Lista" Header="{Binding}"  Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
+                    <ListView x:Name="Lista" ItemsSource="{Binding ItemsSource}" Header="{Binding}" Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
 
                         <ListView.HeaderTemplate>
-                            <DataTemplate>
-                                <ContentView BackgroundColor="Beige">
-                                    <Grid x:Name="header_1">
+                            <DataTemplate>                                
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition x:Name="Columna1" Width="{Binding w_col_1}"></ColumnDefinition>
-                                            <ColumnDefinition Width="{Binding w_col_2}"></ColumnDefinition>
+                                        <ColumnDefinition Width="{Binding Col1.Widht}"></ColumnDefinition>
+                                        <ColumnDefinition Width="{Binding Col2.Widht}"></ColumnDefinition>
                                         </Grid.ColumnDefinitions>
-                                        <Label Margin="10" Grid.Column="0" Text="{Binding col_1}" TextColor="Red"/>
-                                        <Label Margin="10" Grid.Column="1" Text="{Binding col_2}"  TextColor="Black"/>
+                                        <Label Margin="10" Grid.Column="0" Text="{Binding Col1.Titulo}" TextColor="Red"/>
+                                        <Label Margin="10" Grid.Column="1" Text="{Binding Col2.Titulo}"  TextColor="Black" BackgroundColor="Aquamarine"/>
                                     </Grid>
-                                </ContentView>
                             </DataTemplate>
                         </ListView.HeaderTemplate>
 
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <StackLayout Margin="10,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand" BackgroundColor="Cyan">
-                                        <ContentView x:Name="CVV" BackgroundColor="Beige">
-                                            <Grid x:Name="GrillaLista" BackgroundColor="DarkTurquoise" HorizontalOptions="FillAndExpand">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="{Binding w2_col_1}"></ColumnDefinition>
-                                                    <ColumnDefinition Width="{Binding w2_col_2}"></ColumnDefinition>
-                                                </Grid.ColumnDefinitions>
-
-                                                <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" Grid.Column="0" HorizontalOptions="FillAndExpand" BackgroundColor="Fuchsia"/>
-                                                <Label Text="{Binding FechaOrden}" VerticalTextAlignment="Center" Grid.Column="1" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" BackgroundColor="Accent"  />
-                                            </Grid>
-                                        </ContentView>
-                                    </StackLayout>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
                     </ListView>
                 </StackLayout>
                    
