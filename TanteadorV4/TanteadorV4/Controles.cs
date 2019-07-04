@@ -48,7 +48,7 @@ namespace TanteadorV4
         public async void GenerarTorneos(VmTorneos Torneo)
         {/*Genera los partidos del Torneo*/
             List<ObjEquipos> Equipos = await Torneo.MisEquiposQueNoSonCabecera();
-            List<ObjId> Zonas = await Torneo.MisZonas();
+            List<ObjZonas> Zonas = await Torneo.MisZonas();
 
             VmZonas zonaVM = new VmZonas();
 
@@ -91,6 +91,8 @@ namespace TanteadorV4
                 {
                     var r = await GenerarPartidosVuelta(Torneo);
                 }
+
+                GenerarLlave(Torneo.Objeto.ID);
             }
         }
 
@@ -234,6 +236,55 @@ namespace TanteadorV4
         public void BorrarTorneoGenerado(VmTorneos Torneo)
         {
             Torneo.BorrarTorneoGenerado();
+        }
+
+        public async void GenerarLlave(int IdTorneo)
+        {
+            VmTorneos Torneo = new VmTorneos();
+            Torneo.Objeto.ID = IdTorneo;
+            Torneo.pTorneo.Load();
+
+            int Clasificados = Torneo.pTorneo.oTorneo.CantidadClasificadosXZona;
+
+            Torneo.pTorneo.AddParametro_Only("NivelLlave", 0);
+            List<ObjZonas> Zonas = await Torneo.MisZonas();
+            int CantidadZonas = Zonas.Count;
+
+            VmZonas vZonas = new VmZonas();
+
+            ObjZonas Z1, Z2, ZonaNueva;
+
+            for (int i = 0; i < CantidadZonas; i++)
+            {
+                Z1 = Zonas[i];
+
+                if (i == Zonas.Count - 1)
+                    Z2 = Zonas[0];
+                else
+                    Z2 = Zonas[i+1];
+
+                for(int j=0; j< Clasificados/2; j++)
+                {
+                    ZonaNueva = new ObjZonas();
+                    ZonaNueva.IdZ1 = Z1.ID;
+                    ZonaNueva.PosicionZ1 = j + 1;
+
+                    ZonaNueva.IdZ2 = Z2.ID;
+                    ZonaNueva.PosicionZ2 = Clasificados - j;
+
+                    ZonaNueva.IdTorneo = Torneo.Objeto.ID;
+                    ZonaNueva.esLLave = true;
+                    ZonaNueva.NivelLLave = 1;
+
+                    ZonaNueva.Nombre = Z1.Nombre + " (" + (j+1).ToString() + ") " + Z2.Nombre + " (" + (Clasificados - j).ToString() + ")";
+
+                    vZonas.Objeto = ZonaNueva;
+                    vZonas.GuardarItem(EnumOperacion.Nuevo);
+                }
+            }
+
+
+
         }
 
     }

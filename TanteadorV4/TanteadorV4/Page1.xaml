@@ -52,8 +52,8 @@
             <Grid Grid.Row="1" ColumnSpacing="1"  BackgroundColor="DarkGoldenrod">
                 
                 <StackLayout x:Name="stkLista" Grid.Column="0" BackgroundColor="DarkGoldenrod" IsVisible="True">
-                    <ListView x:Name="Lista" ItemsSource="{Binding ItemsSource}" Header="{Binding}" Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
-
+                    <ListView x:Name="Lista" ItemsSource="{Binding ItemsSource}" Header="" Margin="20"  ItemSelected="Lista_ItemSelected" BackgroundColor="SandyBrown" >
+<!--Header="{Binding}
                         <ListView.HeaderTemplate>
                             <DataTemplate>                                
                                     <Grid>
@@ -61,12 +61,12 @@
                                         <ColumnDefinition Width="{Binding Col1.Widht}"></ColumnDefinition>
                                         <ColumnDefinition Width="{Binding Col2.Widht}"></ColumnDefinition>
                                         </Grid.ColumnDefinitions>
-                                        <Label Margin="10" Grid.Column="0" Text="{Binding Col1.Titulo}" TextColor="Red"/>
-                                        <Label Margin="10" Grid.Column="1" Text="{Binding Col2.Titulo}"  TextColor="Black" BackgroundColor="Aquamarine"/>
+                                        <Label Margin="10" Grid.Column="0" Text="{Binding Col1.Titulo}" TextColor="Blue" BackgroundColor="DarkGoldenrod"/>
+                                        <Label Margin="10" Grid.Column="1" Text="{Binding Col2.Titulo}" WidthRequest="{Binding Col2.Width}" TextColor="Blue" BackgroundColor="DarkGoldenrod"/>
                                     </Grid>
                             </DataTemplate>
                         </ListView.HeaderTemplate>
-
+-->
                     </ListView>
                 </StackLayout>
                    
@@ -135,29 +135,58 @@
                     </StackLayout>
 
                     <StackLayout x:Name="stkListaEquipos" IsVisible="False">
-                        <Label Text="Equipos disponibles"></Label>
-                        <ListView x:Name="ListaEquipos_Torneo" Margin="20" ItemSelected="ListaEquipos_Torneo_ItemSelected" BackgroundColor="SandyBrown" >
+                        
+                        <ListView x:Name="ListaEquipos_Torneo" Header="" Margin="20" ItemSelected="ListaEquipos_Torneo_ItemSelected" BackgroundColor="SandyBrown" >
+                            <ListView.HeaderTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" ></ColumnDefinition>                                        
+                                        </Grid.ColumnDefinitions>
+                                        <Label Margin="10" Grid.Column="0" Text="Disponibles" TextColor="Blue" BackgroundColor="DarkGoldenrod" FontAttributes="Bold"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.HeaderTemplate>
+
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <ViewCell>
-                                        <StackLayout Margin="20,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                                        <StackLayout Margin="10,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
                                             <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
-                                            <Label Text="{Binding ID}" VerticalTextAlignment="End" HorizontalOptions="StartAndExpand" />
+                                            <!--<Label Text="{Binding ID}" VerticalTextAlignment="End" HorizontalOptions="StartAndExpand" /> -->
                                         </StackLayout>
                                     </ViewCell>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                        
-                        <Label Text="En la zona"></Label>
-                        <ListView x:Name="ListaEquipos_Zona" Margin="20" ItemSelected="ListaEquipos_Zona_ItemSelected" BackgroundColor="SandyBrown" >
+
+
+                        <ListView x:Name="ListaEquipos_Zona" Header="" Margin="20" ItemSelected="ListaEquipos_Zona_ItemSelected" BackgroundColor="SandyBrown" >
+                            
+                            <ListView.HeaderTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3*" ></ColumnDefinition>
+                                            <ColumnDefinition Width="*" ></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Margin="10" Grid.Column="0" Text="En la Zona" TextColor="Blue" BackgroundColor="DarkGoldenrod" FontAttributes="Bold"/>
+                                        <Label Margin="10" Grid.Column="1" Text="Puntos" TextColor="Blue" BackgroundColor="DarkGoldenrod" FontAttributes="Bold"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.HeaderTemplate>
+
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <ViewCell>
-                                        <StackLayout Margin="20,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
-                                            <Label Text="{Binding Nombre}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
-                                            <Label Text="{Binding ID}" VerticalTextAlignment="End" HorizontalOptions="StartAndExpand" />
-                                        </StackLayout>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="3*" ></ColumnDefinition>
+                                                <ColumnDefinition Width="*" ></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Text="{Binding Nombre}" Grid.Column="0" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
+                                            <Label Text="{Binding Puntos}" Grid.Column="1" VerticalTextAlignment="End" HorizontalOptions="StartAndExpand" />
+                                        </Grid>
                                     </ViewCell>
                                 </DataTemplate>
                             </ListView.ItemTemplate>

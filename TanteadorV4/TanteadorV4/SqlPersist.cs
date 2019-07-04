@@ -35,8 +35,6 @@ namespace TanteadorV4
             database.CreateTableAsync<ObjJugadores>().Wait();
             database.CreateTableAsync<ObjDeportes>().Wait();
 
-            //database.CreateTableAsync<SqlPersistZonas>().Wait();
-
             Torneos.database = database;
             Zonas.database = database;
             Equipos.database = database;
@@ -52,15 +50,18 @@ namespace TanteadorV4
     public class SqlPersistObject
     {
         public SQLiteAsyncConnection database { get; set; }
-        //public Dictionary<int, string> ParametrosQry = new Dictionary<int, string>();
+
+        protected string NombreTabla = ""; 
 
         public ObjId Objeto { set; get; }
 
-        public string[] NombresParametros = new string[0]; 
+        public string[] NombresParametros = new string[0];
+        public string[] ConectoresParametros = new string[0];
         public Object[] ValoresParametros = new Object [0];
                 
-        public void AddParametrosString(string value) { NombresParametros = value.Split(','); } 
-        public void AddParametros(string[] pNombreParametros, Object[] pValoresParametros) { NombresParametros = pNombreParametros; ValoresParametros = pValoresParametros; }
+        public void AddParametrosString(string value) { NombresParametros = value.Split(','); }
+        public void AddConectoresParametrosString(string value) { ConectoresParametros = value.Split(','); }
+        public void AddParametros(string[] pNombreParametros, Object[] pValoresParametros, string[] pConectoresParametros = null) { NombresParametros = pNombreParametros; ValoresParametros = pValoresParametros; ConectoresParametros = pConectoresParametros; }
         public void AddParametro_Only(string pNombre, object pValor) { NombresParametros = new string[] { pNombre };  ValoresParametros = new object[] { pValor }; }
 
 
@@ -86,11 +87,12 @@ namespace TanteadorV4
             return null;
         }
 
-        public virtual async Task<ObjId> GetItemAsync()
+        public virtual async Task<Boolean> Load()
         {
-            //return await database.FindAsync<ObjId>(Objeto.ID);
-            return null;
+                return false;
         }
+
+
 
         public void ObjetoToParametros(Type myType, ObjId p_objTipo)
         {//Carga la lista de propiedades del objeto en la lista de parametros para realizar el query
@@ -118,6 +120,22 @@ namespace TanteadorV4
             ObjetoToParametros(Objeto.GetType(), Objeto);
         }
 
+        protected string Conector_i (int i)
+        {
+            string Conector = " = ? ";
+            try
+            {
+                if (ConectoresParametros[i] != "")
+                    Conector = ConectoresParametros[i];
+            }
+            catch
+            {
+                Conector = " = ? ";
+            }
+
+            return Conector;
+        }
+
         protected string ArmarParametros()
         {//Arma el where de acuerdo a los Parametros
             Boolean laPrimera = true;
@@ -135,7 +153,7 @@ namespace TanteadorV4
                     else
                         sqlQ = sqlQ + " AND ";
 
-                    sqlQ = sqlQ + NombresParametros[i] + " = ? ";
+                    sqlQ = sqlQ + NombresParametros[i] + Conector_i(i);
                     i++;
                 }
 
@@ -169,8 +187,23 @@ namespace TanteadorV4
             }
         }
 
-      
+        public Task<List<ObjEquipoListaEquipos>> GetEquiposListaEquiposAsync(string addQryString = "")
+        {
+            try
+            {
+                string sqlQ = "select E.Nombre, E.ID, L.Puntos, L.IdZona from Equipos E inner join ListaEquipos L on L.IdEquipo = E.Id  " + ArmarParametros() + " " + addQryString;
+                var Resultado = database.QueryAsync<ObjEquipoListaEquipos>(sqlQ, ValoresParametros);
+
+                return Resultado;
+            }
+            catch (Exception Exc)
+            {
+                throw Exc;
+            }
+        }
     }
+
+    
 
     public class SqlPersistTorneos : SqlPersistObject
     {
@@ -178,7 +211,21 @@ namespace TanteadorV4
                 
         public SqlPersistTorneos() : base()
         {//Constructor
+            NombreTabla = "Torneos";
             Objeto = new ObjTorneos();
+        }
+
+        public override async Task<Boolean> Load()
+        {
+            try
+            {
+                Objeto = await database.GetAsync<ObjTorneos>(Objeto.ID);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public override async Task<List<ObjId>> GetItemsAsync()
@@ -226,6 +273,7 @@ namespace TanteadorV4
             strSql = "delete from Partidos where IdZona in  (select Id from Zonas where IdTorneo = " + this.oTorneo.ID.ToString() + ")";
             await database.ExecuteAsync(strSql);
         }
+
     }
 
     public class SqlPersistZonas : SqlPersistObject
@@ -234,7 +282,21 @@ namespace TanteadorV4
 
         public SqlPersistZonas() : base()
         {
+            NombreTabla = "Zonas";
             Objeto = new ObjZonas();
+        }
+
+        public override async Task<Boolean> Load()
+        {
+            try
+            {
+                Objeto = await database.GetAsync<ObjZonas>(Objeto.ID);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public override async Task<List<ObjId>> GetItemsAsync()
@@ -252,34 +314,8 @@ namespace TanteadorV4
 
             return Resultado;
         }
-        /*
-        public List<ObjEquipos> Equipos(ObjZonas Zona)
-        {//Retorna los equipos de la zona
-            string sqlQ = "select * from[ObjEquipos] ";
-            sqlQ = sqlQ + " WHERE IdZona = " + Zona.ID.ToString();
 
-            var Resultado = database.QueryAsync<ObjEquipos>(sqlQ);
-            return Resultado.Result;
-        }
 
-        public async Task<List<ObjEquipos>> MisEquipos(ObjZonas Zona)
-        {
-            string sqlQ = "select * from[ObjEquipos] ";
-            sqlQ = sqlQ + " WHERE IdZona = " + Zona.ID.ToString();
-
-            var Resultado = await database.QueryAsync<ObjEquipos>(sqlQ);
-            return Resultado;
-        }
-
-        public List<ObjEquipos> MisEquipos_Sync(ObjZonas Zona)
-        {
-            //return this.MisEquipos(Zona).Result;
-            string sqlQ = "select * from[ObjEquipos] ";
-            sqlQ = sqlQ + " WHERE IdZona = " + Zona.ID.ToString();
-
-            var Resultado = database.QueryAsync<ObjEquipos>(sqlQ);
-            return Resultado.Result;            
-        }*/
     }
 
     public class SqlPersistEquipos : SqlPersistObject
@@ -288,6 +324,7 @@ namespace TanteadorV4
             
         public SqlPersistEquipos() : base()
         {
+            NombreTabla = "Equipos";
             Objeto = new ObjEquipos();
         }
 
@@ -300,6 +337,20 @@ namespace TanteadorV4
             return Resultado;
         }
 
+
+        public override async Task<Boolean> Load()
+        {
+            try
+            {
+                Objeto = await database.GetAsync<ObjEquipos>(Objeto.ID);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public async Task<List<ObjEquipos>> GetEquiposAsync(string addQryString = "")
         {
             string sqlQ = "select * from Equipos " + ArmarParametros() + " " + addQryString; 
@@ -307,29 +358,50 @@ namespace TanteadorV4
 
             return Resultado;
         }
-        /*
-        public ObjEquipos GetEquipo()
-        {            
-            var Result = database.GetAsync<ObjEquipos>(oEquipo.ID);
-            return (ObjEquipos)Result.Result;
-        }*/
 
-        public virtual async Task<ObjEquipos> GetItemAsync()
+
+        public async Task<int> CantidadPartidosGanados(int IdZona)
         {
-            return await database.FindAsync<ObjEquipos>(Objeto.ID);
+            string sqlQ = "select count(1) from Partidos P where Finalizado = 1 and IdZona = ? ";
+            sqlQ = sqlQ + " and (IdEquipo1= ? and GolesEquipo1 > GolesEquipo2 or IdEquipo2 = ? and GolesEquipo1 < GolesEquipo2)";
+
+            int Resultado = await database.ExecuteScalarAsync<int>(sqlQ, new object[] { IdZona, oEquipo.ID, oEquipo.ID });
+
+            return Resultado;
         }
 
-        public async Task<int> Load()
+        public async Task<int> CantidadPartidosEmpatados(int IdZona)
         {
-            this.oEquipo =  await database.FindAsync<ObjEquipos>(Objeto.ID);
-            return 0;
+
+            string sqlQ = "select count(1) from Partidos P where Finalizado = 1 and IdZona = ? ";
+            sqlQ = sqlQ + " and (IdEquipo1= ? and GolesEquipo1 = GolesEquipo2 or IdEquipo2 = ? and GolesEquipo1 = GolesEquipo2)";
+
+            int Resultado = await database.ExecuteScalarAsync<int>(sqlQ, new object[] { IdZona, oEquipo.ID, oEquipo.ID });
+
+            return Resultado;
+        }
+
+        public async Task<int> CantidadPartidosPerdidos(int IdZona)
+        {
+            string sqlQ = "select count(1) from Partidos P where Finalizado = 1 and IdZona = ? ";
+            sqlQ = sqlQ + " and (IdEquipo1= ? and GolesEquipo1 < GolesEquipo2 or IdEquipo2 = ? and GolesEquipo1 > GolesEquipo2)";
+
+            int Resultado = await database.ExecuteScalarAsync<int>(sqlQ, new object[] { IdZona, oEquipo.ID, oEquipo.ID });
+
+            return Resultado;
         }
     }
 
     public class SqlPersistListaEquipos : SqlPersistObject
     {
-        //public SQLiteAsyncConnection database;
+        public ObjListaEquipos oListaEquipos { set; get; }
 
+        public SqlPersistListaEquipos() : base()
+        {
+            NombreTabla = "ListaEquipos";
+            oListaEquipos = new ObjListaEquipos();
+        }
+                
         public async Task<List<ObjId>> GetItemsAsync_EquiposZona(int IdZona)
         {
             var Resultado = await database.QueryAsync<ObjEquipos>("SELECT E.* FROM [Equipos] E inner join [ListaEquipos] L on E.Id = L.IdEquipo WHERE L.[Idzona] = " + IdZona.ToString());
@@ -338,9 +410,24 @@ namespace TanteadorV4
             return R;
         }
 
+        public override async Task<Boolean> Load()
+        {
+            try
+            {
+                IList<ObjListaEquipos> Lista = await database.QueryAsync<ObjListaEquipos>("SELECT * FROM ListaEquipos WHERE IdEquipo = "+ oListaEquipos.IdEquipo.ToString() + " and IdZona = " + oListaEquipos.IdZona.ToString());
+                oListaEquipos = Lista[0];
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public Task<int> UpdateItemAsync(ObjListaEquipos item)
         {
-            return database.UpdateAsync(item);
+            return database.ExecuteAsync("Update LISTAEQUIPOS set Puntos = ? where IdEquipo = ? and IdZona = ? ", new object[] { item.Puntos, item.IdEquipo, item.IdZona });
+            //return database.UpdateAsync(item);
         }
 
         public Task<int> DeleteItemListaEquipo(ObjListaEquipos item)
@@ -354,15 +441,6 @@ namespace TanteadorV4
             return database.InsertAsync(item);
         }
 
-        public Task<List<ObjEquipos>> GetItemsAsync(int p_IdZona = 0)
-        {
-            string strSql = "SELECT E.*, E.Nombre Display FROM [ListaEquipos] LE inner join [Equipos] E on LE.IdEquipo = E.ID";
-            if (p_IdZona > 0)
-            {
-                strSql = strSql + " WHERE LE.[IdZona] = " + p_IdZona.ToString();
-            }
-            return database.QueryAsync<ObjEquipos>(strSql);
-        }
     }
 
     public class SqlPersistPartidos : SqlPersistObject
@@ -371,7 +449,21 @@ namespace TanteadorV4
 
         public SqlPersistPartidos() : base()
         {
+            NombreTabla = "Partidos";
             Objeto = new ObjPartidos();
+        }
+
+        public override async Task<Boolean> Load()
+        {
+            try
+            {
+                Objeto = await database.GetAsync<ObjPartidos>(Objeto.ID);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public override async Task<List<ObjId>> GetItemsAsync()
@@ -382,6 +474,7 @@ namespace TanteadorV4
             return Resultado;
         }
 
+
         public async Task<List<ObjPartidos>> GetPartidosAsync()
         {
             string sqlQ = "select P.* from Partidos P " + ArmarParametros() + " order by P.FechaOrden ";
@@ -389,18 +482,6 @@ namespace TanteadorV4
 
             return Resultado;
         }
-        /*    
-     public List<ObjEquipos> MisEquipos
-     {
-         get {
-             string sqlQ = "select E.* from[ObjEquipos] E inner join [ObjListaEquipos] L on L.IdEquipo = E.Id ";
-             sqlQ = sqlQ + " WHERE L.[IdZona] = " + ((ObjZonas)Filtro_GetItemsAsync).ID.ToString();
-
-             var Resultado = database.QueryAsync<ObjEquipos>(sqlQ);
-             return Resultado.Result;
-             }
-     }*/
-
     }
 
     public class SqlPersistJugadores : SqlPersistObject
@@ -409,8 +490,10 @@ namespace TanteadorV4
 
         public SqlPersistJugadores() : base()
         {
+            NombreTabla = "Jugadores";
             Objeto = new ObjJugadores();
         }
+
 
         public Task<List<ObjJugadores>> GetEquipos_Async()
         {
@@ -420,13 +503,24 @@ namespace TanteadorV4
             return Resultado;
         }
 
-        
-      
+        public override async Task<Boolean> Load()
+        {
+            try
+            {
+                Objeto = await database.GetAsync<ObjJugadores>(Objeto.ID);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
     }
 
     #endregion
 
-    #region OBJETOS
+    #region OBJETOS BASE DE DATOS
 
     public class ObjId
     {
@@ -471,6 +565,13 @@ namespace TanteadorV4
     {
         public int IdTorneo { get; set; }
         public Boolean esLLave { get; set; }
+        public int NivelLLave { get; set; }
+
+        public int IdZ1 { get; set; }
+        public int PosicionZ1 { get; set; }
+        public int IdZ2 { get; set; }
+        public int PosicionZ2 { get; set; }
+
         public int IdEquipoCabezaDeSerie { get; set; }
     }
 
@@ -487,6 +588,7 @@ namespace TanteadorV4
     {
         public int IdZona { get; set; }
         public int IdEquipo { get; set; }
+        public double Puntos { get; set; } = 0;
     }
 
     [Table("Partidos")]
@@ -513,5 +615,14 @@ namespace TanteadorV4
 
     #endregion
 
+
+    public class ObjEquipoListaEquipos
+    {
+        public string Nombre { get; set; }
+        public int ID { get; set; }
+
+        public int Puntos { get; set; }
+        public int IdZona { get; set; }
+    }
 
 }

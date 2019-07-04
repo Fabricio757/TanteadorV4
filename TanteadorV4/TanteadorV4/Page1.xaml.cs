@@ -82,6 +82,13 @@ namespace TanteadorV4
             OcultarStacks();
             stkPartidos.IsVisible = true;
             stkNombre.IsVisible = true;
+
+            vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo = "Partido", Width = 4 },
+                             new Columna_Lista() { NombreAtributo = "FechaOrden", Titulo = "Fecha", Width = 1 });
+
+            Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+            Lista.HeaderTemplate = vmLista.HeaderTemplate_configuracion();
+
             TituloABM.Text = "Partidos";
         }
 
@@ -95,8 +102,11 @@ namespace TanteadorV4
 
             TituloABM.Text = "Equipos";
 
-            Lista.HeaderTemplate = new DataTemplate();
-            
+            vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo = "Equipo", Width = 1 });
+
+            Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+            Lista.HeaderTemplate = vmLista.HeaderTemplate_configuracion();
+
         }
 
         private void ItemZona_OnMostrar(object sender, EventArgs e)
@@ -112,8 +122,10 @@ namespace TanteadorV4
             TituloABM.Text = "Zonas";
 
             vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo="Zona", Width=1 } );
+            Lista.HeaderTemplate = vmLista.HeaderTemplate_configuracion();
 
             Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+            Lista.HeaderTemplate = vmLista.HeaderTemplate_configuracion();
 
             if (enumVista == EnumVista.vistaLista)
                 BindingContext = vmLista;
@@ -121,33 +133,41 @@ namespace TanteadorV4
 
         private async void ItemTorneo_OnMostrar(object sender, EventArgs e)
         {
-            OcultarStacks();
-            stkTorneos.IsVisible = true;
-            stkNombre.IsVisible = true;
-            
-            btnZonas.IsEnabled = ! controlesLimpios;
-            btnEquipos.IsEnabled = ! controlesLimpios;
+            try
+            {
+                OcultarStacks();
+                stkTorneos.IsVisible = true;
+                stkNombre.IsVisible = true;
 
-            if(ItemTorneo != null)
-                if (ItemTorneo.Objeto.ID > 0)
-                {
-                    Boolean b = await ItemTorneo.TienePartidos();
+                btnZonas.IsEnabled = !controlesLimpios;
+                btnEquipos.IsEnabled = !controlesLimpios;
 
-                    if (b)
-                        btnGenerarTorneo.Text = "Borrar Partidos";
-                    else
-                        btnGenerarTorneo.Text = "Generar Torneo";
-                }
-            
-            TituloABM.Text = "Torneos";
-            
-            vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo = "Torneo", Width= 1 }, new Columna_Lista() { NombreAtributo = "Titulo1", Titulo = "Titulo", Width = 1 });
+                if (ItemTorneo != null)
+                    if (ItemTorneo.Objeto.ID > 0)
+                    {
+                        Boolean b = await ItemTorneo.TienePartidos();
 
-            Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+                        if (b)
+                            btnGenerarTorneo.Text = "Borrar Partidos";
+                        else
+                            btnGenerarTorneo.Text = "Generar Torneo";
+                    }
 
-            if (enumVista == EnumVista.vistaLista)
-                BindingContext = vmLista;        
+                TituloABM.Text = "Torneos";
 
+                vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo = "Torneo", Width = 4 },
+                    new Columna_Lista() { NombreAtributo = "Titulo1", Titulo = "Titulo", Width = 1 });
+
+                Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+                Lista.HeaderTemplate = vmLista.HeaderTemplate_configuracion();
+
+                if (enumVista == EnumVista.vistaLista)
+                    BindingContext = vmLista;
+            }
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private void ItemJugadores_OnMostrar(object sender, EventArgs e)
@@ -155,6 +175,11 @@ namespace TanteadorV4
             OcultarStacks();
             stkJugadores.IsVisible = true;
             stkNombre.IsVisible = true;
+
+            vmLista.Columnas(new Columna_Lista() { NombreAtributo = "Nombre", Titulo = "Jugador", Width = 1 });
+
+            Lista.ItemTemplate = vmLista.DateTemplate_configuracion();
+            Lista.HeaderTemplate = vmLista.HeaderTemplate_configuracion();
 
             TituloABM.Text = "Jugadores";
         }
@@ -311,15 +336,14 @@ namespace TanteadorV4
                 {
                     await VistaLista();
                     await RefreshList();
-
                 }
                 else
                 {
                     ItemVM = ItemVM.ItemAtras;
                     ItemVM.setItemPropertiesFromObject();
                     BindingContext = ItemVM;
-                    ItemVM.Mostrar(null);
                     VistaItem();
+                    ItemVM.Mostrar(null);                    
                 };
             }
             catch (Exception Ex)
@@ -448,7 +472,7 @@ namespace TanteadorV4
 
 
                 ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
-                ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
+                ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquiposListaEquipos();
                 //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
 
                 VistaDobleLista();
