@@ -329,6 +329,14 @@ namespace TanteadorV4
             return await App.Database.Zonas.GetZonasAsync();
         }
 
+        public async Task<List<ObjZonas>> MisZonas(int NivelLlave)
+        {
+            App.Database.Zonas.NombresParametros = new[] { "IdTorneo", "NivelLlave" };
+            App.Database.Zonas.ValoresParametros = new object[] { this.pTorneo.oTorneo.ID, NivelLlave};
+
+            return await App.Database.Zonas.GetZonasAsync();
+        }
+
         public async Task<Boolean> TienePartidos()
         {
             List<ObjPartidos> L = await this.MisPartidos();

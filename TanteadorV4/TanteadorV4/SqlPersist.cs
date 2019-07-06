@@ -47,6 +47,7 @@ namespace TanteadorV4
     }
 
     #region PERSISTS
+
     public class SqlPersistObject
     {
         public SQLiteAsyncConnection database { get; set; }
@@ -271,6 +272,10 @@ namespace TanteadorV4
             await database.ExecuteAsync(strSql);
 
             strSql = "delete from Partidos where IdZona in  (select Id from Zonas where IdTorneo = " + this.oTorneo.ID.ToString() + ")";
+            await database.ExecuteAsync(strSql);
+
+            //borrar las zonas de nivel 1+
+            strSql = "delete from Zonas where NivelLlave > 0 and IdTorneo = " + this.oTorneo.ID.ToString();
             await database.ExecuteAsync(strSql);
         }
 
