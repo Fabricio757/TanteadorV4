@@ -383,6 +383,22 @@ namespace TanteadorV4
             App.Database.Torneos.oTorneo = this.pTorneo.oTorneo;
             App.Database.Torneos.BorrarTorneoGenerado();
         }
+
+        public async Task<Boolean> PartidosFinalizados(int Nivel)
+        {
+            Boolean B = false;
+
+            VmZonas vZonas = new VmZonas();
+
+            List<ObjZonas> Lista = await this.MisZonas(Nivel);
+            foreach(ObjZonas Z in Lista)
+            {
+                vZonas.pZona.oZona = Z;
+                B = await vZonas.PartidosFinalizados();
+            }
+
+            return B;
+        }
     }
 
 
@@ -501,6 +517,70 @@ namespace TanteadorV4
 
             return await App.Database.JOIN.GetEquiposListaEquiposAsync();
         }
+
+        public async Task<Boolean> PartidosFinalizados()
+        {
+            Boolean B = false;
+
+            App.Database.Partidos.AddParametrosString("IdZona, Finalizado");
+            App.Database.Partidos.ValoresParametros = new object[] { this.Objeto.ID, false };
+            List<ObjId> L = await App.Database.Partidos.GetItemsAsync();
+
+            B = L.Count == 0;
+
+            return B;
+        }
+
+        public async Task<List<ObjEquipos>> MisEquiposClasificados()
+        {
+            List<ObjEquipos> ListaEquipos = new List<ObjEquipos>();
+
+            SqlPersistTorneos Torneo = new SqlPersistTorneos();
+            Torneo.Objeto.ID = this.pZona.oZona.IdTorneo;
+            await Torneo.Load();
+
+            int CantidadClasificados = Torneo.oTorneo.CantidadClasificadosXZona;
+
+            string[] N = { "IdZona" };
+            Object[] V = { ((ObjZonas)Objeto).ID };
+            App.Database.Equipos.AddParametros(N, V);
+
+            List<ObjEquipoListaEquipos> Lista = await App.Database.JOIN.GetEquiposListaEquiposAsync(" order by Puntos ");
+            
+            for(int i=0; i<CantidadClasificados; i++)
+            {
+                SqlPersistEquipos Equipo = new SqlPersistEquipos();
+                Equipo.oEquipo.ID = Lista[i].ID;
+                await Equipo.Load();
+
+                ListaEquipos.Add(Equipo.oEquipo);
+            }
+
+            return (ListaEquipos);
+        }
+
+        public async Task<Boolean> CompletarZona_yPartidos()
+        {            
+            List<ObjEquipos> EquiposClasificados = await this.MisEquiposClasificados();
+
+            List<ObjListaEquipos> Lista = new List<ObjListaEquipos>();
+            ObjListaEquipos EquipoLista = new ObjListaEquipos();
+
+            EquipoLista.IdEquipo = (EquiposClasificados[this.pZona.oZona.PosicionZ1]).ID;
+            EquipoLista.IdZona = this.Objeto.ID;
+            EquipoLista.Puntos = 0;
+
+            Lista.Add(EquipoLista);
+
+            EquipoLista = new ObjListaEquipos();
+
+            EquipoLista.IdEquipo = (EquiposClasificados[this.pZona.oZona.PosicionZ2]).ID;
+            EquipoLista.IdZona = this.Objeto.ID;
+            EquipoLista.Puntos = 0;
+
+            return true;
+        }
+
     }
 
 
@@ -736,6 +816,20 @@ namespace TanteadorV4
 
             Lista.oListaEquipos.Puntos = await Equipo.Puntos(pPartidos.oPartido.IdZona);
             re = await Lista.UpdateItemAsync(Lista.oListaEquipos);
+
+            /*  Armar las zonas de la llave */
+
+            VmZonas Z = new VmZonas();
+            Z.pZona.oZona.ID = pPartidos.oPartido.IdZona;
+            await Z.pZona.Load();
+
+            VmTorneos Torneo = new VmTorneos();
+            Torneo.Objeto.ID = Z.pZona.oZona.IdTorneo;
+            await Torneo.pTorneo.Load();
+
+            Boolean partidosFinalizados = await Torneo.PartidosFinalizados(Z.pZona.oZona.NivelLLave);
+            
+            if ....
 
             return "";
         }

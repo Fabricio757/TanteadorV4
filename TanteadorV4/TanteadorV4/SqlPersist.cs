@@ -68,8 +68,6 @@ namespace TanteadorV4
 
         public Task<int> UpdateItemAsync(ObjId item)
         {
-            string v = "";
-            v.Split(',');
             return database.UpdateAsync(item);
         }
 

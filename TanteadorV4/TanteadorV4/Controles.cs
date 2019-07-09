@@ -240,14 +240,16 @@ namespace TanteadorV4
 
         public async void GenerarLlave(int IdTorneo)
         {
+            int t = 1;
             VmTorneos Torneo = new VmTorneos();
             Torneo.Objeto.ID = IdTorneo;
-            Torneo.pTorneo.Load();
+            await Torneo.pTorneo.Load();
 
             int Clasificados = Torneo.pTorneo.oTorneo.CantidadClasificadosXZona;
                         
             List<ObjZonas> Zonas = await Torneo.MisZonas(0);
             int CantidadZonas = Zonas.Count;
+            
 
             VmZonas vZonas = new VmZonas();
 
@@ -262,7 +264,7 @@ namespace TanteadorV4
                 else
                     Z2 = Zonas[i+1];
 
-                for(int j=0; j< Clasificados/2; j++)
+                for (int j = 0; j < Math.Ceiling((double)Clasificados / 2); j++)
                 {
                     ZonaNueva = new ObjZonas();
                     ZonaNueva.IdZ1 = Z1.ID;
@@ -275,19 +277,21 @@ namespace TanteadorV4
                     ZonaNueva.esLLave = true;
                     ZonaNueva.NivelLLave = 1;
 
-                    ZonaNueva.Nombre = Z1.Nombre + " (" + (j+1).ToString() + ") " + Z2.Nombre + " (" + (Clasificados - j).ToString() + ")";
+                    ZonaNueva.Nombre = "Nivel 1 Nro: " + t.ToString() + " " + Z1.Nombre + " (" + (j+1).ToString() + ") " + Z2.Nombre + " (" + (Clasificados - j).ToString() + ")";
 
                     vZonas.Objeto = ZonaNueva;
                     vZonas.GuardarItem(EnumOperacion.Nuevo);
+                    t++;
                 }
             }
 
 
             // LOS DEMÁS NIVELES
-
+            string descNivel = "Nivel";
             int Nivel = 1;
             Zonas = await Torneo.MisZonas(Nivel);
             CantidadZonas = Zonas.Count;
+            int CantidadNiveles = (int)Math.Ceiling(Math.Sqrt(CantidadZonas));
 
             while (CantidadZonas > 1) 
             {
@@ -312,11 +316,20 @@ namespace TanteadorV4
                     ZonaNueva.esLLave = true;
                     ZonaNueva.NivelLLave = Nivel + 1;
 
-                    ZonaNueva.Nombre = "Nivel " + (Nivel + 1).ToString() + " " + i.ToString();
+                    if (Nivel == CantidadNiveles)
+                        descNivel = "Final";
+                    if (Nivel == CantidadNiveles-1)
+                        descNivel = "SemiF";
+                    if ((Nivel == CantidadNiveles - 2)&&(CantidadNiveles - 2 > 0))
+                        descNivel = "4tos ";
+                    if ((Nivel == CantidadNiveles - 3) && (CantidadNiveles - 3 > 0))
+                        descNivel = "8vos ";
+
+                    ZonaNueva.Nombre = descNivel + " " + (Nivel + 1).ToString() + " Nro: " + t.ToString() + "  [" + Z1.Nombre.Substring(13,2) + " - " + Z2.Nombre.Substring(13, 2) + "]";
 
                     vZonas.Objeto = ZonaNueva;
                     vZonas.GuardarItem(EnumOperacion.Nuevo);
-
+                    t++;
                 }
 
 
@@ -324,6 +337,8 @@ namespace TanteadorV4
                 Zonas = await Torneo.MisZonas(Nivel);
                 CantidadZonas = Zonas.Count;
             }
+
+
         }
     }
 }

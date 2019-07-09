@@ -163,6 +163,7 @@ namespace TanteadorV4
 
                 if (enumVista == EnumVista.vistaLista)
                     BindingContext = vmLista;
+                
             }
             catch (Exception Ex)
             {
@@ -196,7 +197,9 @@ namespace TanteadorV4
             OcultarStacks();
             stkTorneos.IsVisible = true;
             stkNombre.IsVisible = true;
+            enumVista = EnumVista.vistaLista;
             LimpiarControles();
+            await VistaLista();
         }
 
         private async Task RefreshList()
@@ -380,7 +383,7 @@ namespace TanteadorV4
                 if (itemAtras != null)
                     ItemVM.ItemAtras = itemAtras;
 
-
+                enumVista = EnumVista.vistaItem;
                 BindingContext = ItemVM;
                 ((VmBase)BindingContext).setItemPropertiesFromObject();
                 controlesLimpios = true;
@@ -395,7 +398,7 @@ namespace TanteadorV4
         #endregion
 
 
-        #region Controles
+        #region Controles_Cambio_de_Entidad
 
         private async void btnZonas_Clicked(object sender, EventArgs e)
         {
