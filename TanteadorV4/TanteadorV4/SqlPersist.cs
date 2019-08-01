@@ -10,20 +10,22 @@ namespace TanteadorV4
 {
 
 
-    public class SqlPersist
+    static public class SqlPersist
     {
-        private SQLiteAsyncConnection database;
-        public SqlPersistTorneos Torneos = new SqlPersistTorneos();
-        public SqlPersistZonas Zonas = new SqlPersistZonas();
-        public SqlPersistEquipos Equipos = new SqlPersistEquipos();
-        public SqlPersistListaEquipos ListaEquipos = new SqlPersistListaEquipos();
-        public SqlPersistPartidos Partidos = new SqlPersistPartidos();
-        public SqlPersistJugadores Jugadores = new SqlPersistJugadores();
+        static private SQLiteAsyncConnection database;
+        static public SqlPersistTorneos Torneos = new SqlPersistTorneos();
+        static public SqlPersistZonas Zonas = new SqlPersistZonas();
+        static public SqlPersistEquipos Equipos = new SqlPersistEquipos();
+        static public SqlPersistListaEquipos ListaEquipos = new SqlPersistListaEquipos();
+        static public SqlPersistPartidos Partidos = new SqlPersistPartidos();
+        static public SqlPersistJugadores Jugadores = new SqlPersistJugadores();
 
-        public SqlPersistJOIN JOIN = new SqlPersistJOIN();
+        static public SqlPersistJOIN JOIN = new SqlPersistJOIN();
+
+        
 
 
-        public SqlPersist(string dbPath)
+        static public void SqlPersist_Config(string dbPath)
         {
             database = new SQLiteAsyncConnection(dbPath);
             database.CreateTableAsync<ObjDeportes>().Wait();
@@ -223,6 +225,7 @@ namespace TanteadorV4
             }
             catch (Exception ex)
             {
+                throw ex;
                 return false;
             }
         }
@@ -256,6 +259,13 @@ namespace TanteadorV4
             {
                 throw Exc;
             }
+        }
+
+        public async Task<List<ObjEquipos>> MisEquipos()
+        {
+            SqlPersist.Equipos.AddParametros(new[] { "IdTorneo" }, new object[] { this.oTorneo.ID });
+
+            return await SqlPersist.Equipos.GetEquiposAsync();
         }
 
         public async void BorrarTorneoGenerado()

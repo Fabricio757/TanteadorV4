@@ -16,7 +16,7 @@ namespace TanteadorV4
     public enum EnumOperacion { Nuevo, Actualiza };
     public enum EnumBindingType { Objeto, Item };
 
-
+    /*
     public class IntToGridLengthConverter : IValueConverter
     {
         public IntToGridLengthConverter()
@@ -33,16 +33,13 @@ namespace TanteadorV4
         {
             throw new NotImplementedException();
         }
-    }
+    }*/
 
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class Page1 : ContentPage
     {
-
-
         EnumVista enumVista = EnumVista.vistaLista;
         Boolean controlesLimpios = false;
-         
         
         private VmBase ItemVM;
         private VmTorneos ItemTorneo;
@@ -145,7 +142,7 @@ namespace TanteadorV4
                 if (ItemTorneo != null)
                     if (ItemTorneo.Objeto.ID > 0)
                     {
-                        Boolean b = await ItemTorneo.TienePartidos();
+                        Boolean b = await ItemTorneo.bTorneo.TienePartidos();
 
                         if (b)
                             btnGenerarTorneo.Text = "Borrar Partidos";
@@ -204,7 +201,7 @@ namespace TanteadorV4
 
         private async Task RefreshList()
         {
-            vmLista.ItemsSource = await ItemVM.RetornarLista();
+            vmLista.ItemsSource = await ItemVM.Bi.RetornarLista();
         }
 
         private async Task VistaLista()
@@ -318,7 +315,7 @@ namespace TanteadorV4
         {
             try
             {
-                string Mensaje = await ItemVM.DeleteItem();
+                string Mensaje = await ItemVM.Bi.DeleteItem();
 
                 await this.DisplayAlert(Mensaje, "Resultado", "Ok");
                 await VistaLista();
@@ -407,8 +404,8 @@ namespace TanteadorV4
                 ItemZona.ItemAtras = ItemTorneo;
 
                 //Cargo los parametros para filtrar las zonas de este torneo
-                ItemZona.Persist.NombresParametros = new[] { "IdTorneo" };
-                ItemZona.Persist.ValoresParametros = new object[] { ItemTorneo.Objeto.ID };
+                ItemZona.bZona.pZona.NombresParametros = new[] { "IdTorneo" };
+                ItemZona.bZona.pZona.ValoresParametros = new object[] { ItemTorneo.Objeto.ID };
 
                 ItemVM = ItemZona;
                 await VistaLista();
@@ -427,8 +424,8 @@ namespace TanteadorV4
                 ItemVM = ItemEquipos;
                 ItemVM.Mostrar(null);
 
-                Object[] valoresParametros = new Object[] { ItemTorneo.pTorneo.oTorneo.ID };
-                ItemEquipos.pEquipo.AddParametros(new[] { "IdTorneo" }, valoresParametros);
+                Object[] valoresParametros = new Object[] { ItemTorneo.bTorneo.pTorneo.oTorneo.ID };
+                ItemEquipos.bEquipo.pEquipo.AddParametros(new[] { "IdTorneo" }, valoresParametros);
 
                 await VistaLista();
             }
@@ -445,13 +442,13 @@ namespace TanteadorV4
                 Funciones f = new Funciones();
                 if (btnGenerarTorneo.Text == "Generar Torneo")
                 {
-                    f.GenerarTorneos(ItemTorneo);
+                    await f.GenerarTorneos(ItemTorneo.bTorneo);
                     await this.DisplayAlert("Mensaje", "Torneo Generado", "Ok");
                     btnGenerarTorneo.Text = "Borrar Torneo";
                 }
                 else
                 {
-                    f.BorrarTorneoGenerado(ItemTorneo);
+                    f.BorrarTorneoGenerado(ItemTorneo.bTorneo);
                     await this.DisplayAlert("Mensaje", "Torneo Borrado", "Ok");
                     btnGenerarTorneo.Text = "Generar Torneo";
                 }
@@ -474,11 +471,11 @@ namespace TanteadorV4
                 ItemVM.ItemAtras = ItemZona;
 
 
-                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
-                ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquiposListaEquipos();
+                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
+                ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
                 //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
 
-                VistaDobleLista();
+               VistaDobleLista();
 
                 TituloABM.Text = "Lista de Equipos";
             }
@@ -493,7 +490,7 @@ namespace TanteadorV4
             ItemPartidos.ItemAtras = ItemZona;
             ItemVM = ItemPartidos;
 
-            ItemPartidos.Persist.AddParametro_Only("IdZona", ItemZona.Objeto.ID);
+            ItemPartidos.bPartido.Persist.AddParametro_Only("IdZona", ItemZona.Objeto.ID);
 
             await VistaLista();
         }
@@ -509,31 +506,32 @@ namespace TanteadorV4
         private async void ListaEquipos_Torneo_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             ObjEquipos Item = (ObjEquipos)e.SelectedItem;
-            await ItemListaEquipos.AddEquipo(Item);
+            Item.IdZona = ItemVM.ItemAtras.Objeto.ID;
+            await ItemListaEquipos.bListaEquipo.AddEquipo(Item);
 
-            ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
-            ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();//ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
+            ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
+            ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
         }
 
         private async void ListaEquipos_Zona_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {//Saco un equipo de la zona 
             try
-            { 
-                ObjEquipos Item = (ObjEquipos)e.SelectedItem;
+            {
+                ObjEquipoListaEquipos Item = (ObjEquipoListaEquipos)e.SelectedItem;
 
                 VmEquipos EquiposVM = new VmEquipos();
-                EquiposVM.Objeto = Item;
-                List<ObjPartidos> misPartidos = await EquiposVM.MisPartidos();
+                EquiposVM.Objeto.ID = Item.ID;
+                await EquiposVM.bEquipo.Load();
+                List<ObjPartidos> misPartidos = await EquiposVM.bEquipo.MisPartidos(Item.IdZona);
 
-                
+                ObjEquipos Equipo = EquiposVM.oEquipo;
 
-                if ((misPartidos.Count == 0) && (((ObjZonas)ItemZona.Objeto).IdEquipoCabezaDeSerie != Item.ID))
+                if ((misPartidos.Count == 0) && (((ObjZonas)ItemZona.Objeto).IdEquipoCabezaDeSerie != Equipo.ID))
                 {                
-                    await ItemListaEquipos.RemoveEquipo(Item);
-
-                    //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
-                    ListaEquipos_Zona.ItemsSource = await ItemZona.MisEquipos();
-                    ListaEquipos_Torneo.ItemsSource = await ItemTorneo.MisEquiposDisponibles();
+                    await ItemListaEquipos.bListaEquipo.RemoveEquipo(Equipo);
+                    
+                    ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
+                    ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
                 }
                 else
                     await DisplayAlert("Mensaje", "No se puede eliminar, es cabeza de serie o ya tiene partidos asignados", "Ok");

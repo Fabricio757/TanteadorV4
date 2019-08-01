@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Linq;
+
+
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using System.Linq;
 
 namespace TanteadorV4
 {
@@ -150,124 +152,30 @@ namespace TanteadorV4
             }
         }
 
-        protected SqlPersistObject _Persist;
-        public SqlPersistObject Persist { set { _Persist = value; } get { _Persist = getPersist(); return _Persist; } }
+        //protected ObjId _Objeto;
+        //public ObjId Objeto { set { _Objeto = value; OnPropertyChanged(); } get { return _Objeto; } }
+        public ObjId Objeto { set { Bi.Objeto = value; OnPropertyChanged(); } get { return Bi.Objeto; } }
 
-        public SqlPersistListaEquipos pPersist { get { return (SqlPersistListaEquipos)Persist; } }
 
-        public ObjId Objeto { set { Persist.Objeto = value; OnPropertyChanged(); } get { return Persist.Objeto; } }
+        public BiBase Bi { get { return getBi(); } }
 
-        public VmBase() : base()
-        {//Constructor
-            _Persist = getPersist();
-        }
+        public virtual BiBase getBi()
+        { return null;  }
 
         public virtual void setItemPropertiesFromObject() { }
 
         //ATRAS
         protected VmBase _ItemAtras;
-        public virtual VmBase ItemAtras { set { setAtras(value); } get { return _ItemAtras; } }
-
-
-        protected void setAtras(VmBase value)
-        {
-            _ItemAtras = value;
-            //Persist = getPersist();
-            //Persist.Objeto = value.Objeto;
-        }
-
-        public virtual SqlPersistObject getPersist()
-        {
-            return null;
-        }
-
-        public virtual async Task<List<ObjId>> RetornarLista()
-        {
-            Persist = getPersist();
-            Persist.Objeto = this.Objeto;
-
-
-            return await Persist.GetItemsAsync();
-        }
-
-        public virtual void CargaCompleta()
-        { }
-
-        public virtual async Task<string> BeforeGuardar(EnumOperacion Operacion)
-        {
-            return "";
-        }
-
-        public virtual async Task<string> AfterGuardar(EnumOperacion Operacion)
-        {
-            return "";
-        }
-
-        public virtual async Task<string> GuardarItem(EnumOperacion Operacion)
-        {
-            string Mensaje = "";
-
-            try
-            {
-                Mensaje = ItemValido();
-
-                Persist = getPersist();
-
-                if (Mensaje == "")
-                {
-                    await BeforeGuardar(EnumOperacion.Nuevo);
-                    if (Operacion == EnumOperacion.Nuevo)
-                    {
-                        await Persist.InsertItemAsync(Objeto);
-                    }
-                    else
-                    {
-                        await Persist.UpdateItemAsync(Objeto);
-                    }
-                    await AfterGuardar(EnumOperacion.Nuevo);
-                }
-            }
-            catch (Exception ex)
-            {
-                Mensaje = ex.Message;
-            }
-
-            return Mensaje;
-        }
-
-        public virtual string ItemValido()
-        {
-            return "";
-        }
-
-        public async Task<string> DeleteItem()
-        {
-            Persist = getPersist();
-            string mensaje = await SePuedeBorrar();
-
-            if (mensaje == "")
-            {
-                await Persist.DeleteItemAsync(Objeto);
-                mensaje = "Borrado";
-            };
-            return mensaje;
-        }
-
-        public async virtual Task<string> SePuedeBorrar()
-        {
-            return "";
-        }
-
-        //
-        public virtual void setObjeto(ObjId _Objeto)
-        { }
+        public virtual VmBase ItemAtras { set { _ItemAtras = value; } get { return _ItemAtras; } }
 
         //
         public virtual void SetObjAtras(ObjId obj)
         { }
 
         public virtual async void NewObject()
-        { }
+        {
+            Objeto = new ObjId();
+        }
 
         public virtual void Mostrar(EventArgs e)
         {
@@ -278,63 +186,76 @@ namespace TanteadorV4
             }
         }
 
+        protected virtual void SetAtrasFK()
+        { }
+
+        public virtual async Task<string> GuardarItem(EnumOperacion Operacion)
+        {
+            SetAtrasFK();
+            this.Bi.Objeto = this.Objeto;
+            return await this.Bi.GuardarItem(Operacion);
+        }
+
     }
-
-
 
     public class VmTorneos : VmBase
     {
-        public SqlPersistTorneos pTorneo { set { _Persist = value; } get { return (SqlPersistTorneos)_Persist; } }
+        public BiTorneos bTorneo { get { return BI.Torneos; } }
+        public ObjTorneos oTorneo { set { Objeto = value; } get { return (ObjTorneos)Objeto; } }
 
-        public override SqlPersistObject getPersist()
-        {
-            return App.Database.Torneos;
+
+        public VmTorneos() : base()
+        {//Constructor            
+            oTorneo = new ObjTorneos();
         }
+
+        public override BiBase getBi() { return bTorneo; }
 
         public override void NewObject()
         {
-            Objeto = new ObjTorneos();
+            oTorneo = new ObjTorneos();
         }
 
+
+        /*
         public async Task<List<ObjEquipos>> MisEquipos()
         {
-            App.Database.Equipos.AddParametros(new[] { "IdTorneo" }, new object[] { this.pTorneo.oTorneo.ID });
-
-            return await App.Database.Equipos.GetEquiposAsync();
+            return await bTorneo.MisEquipos();
+            //return await Bi.MisEquipos();
         }
 
         public async Task<List<ObjEquipos>> MisEquiposQueNoSonCabecera()
         {
-            App.Database.Equipos.AddParametrosString("IdTorneo");
-            App.Database.Equipos.ValoresParametros = new object[] { Objeto.ID };
+            SqlPersist.Equipos.AddParametrosString("IdTorneo");
+            SqlPersist.Equipos.ValoresParametros = new object[] { Objeto.ID };
 
-            return await App.Database.Equipos.GetEquiposAsync(" and Id not in (select ifnull(IdEquipoCabezaDeSerie,0) from Zonas where idTorneo = " + Objeto.ID.ToString() + " )");
+            return await SqlPersist.Equipos.GetEquiposAsync(" and Id not in (select ifnull(IdEquipoCabezaDeSerie,0) from Zonas where idTorneo = " + Objeto.ID.ToString() + " )");
         }
 
         public async Task<List<ObjEquipos>> MisEquiposDisponibles()
         {
-            App.Database.Equipos.AddParametrosString("IdTorneo, IdZona");
-            App.Database.Equipos.AddConectoresParametrosString(", is Null");
-            App.Database.Equipos.ValoresParametros = new object[] { Objeto.ID, "" };
+            SqlPersist.Equipos.AddParametrosString("IdTorneo, IdZona");
+            SqlPersist.Equipos.AddConectoresParametrosString(", is Null");
+            SqlPersist.Equipos.ValoresParametros = new object[] { Objeto.ID, "" };
 
-            return await App.Database.Equipos.GetEquiposAsync();
+            return await SqlPersist.Equipos.GetEquiposAsync();
         }
 
         public async Task<List<ObjZonas>> MisZonas()
         {
-            App.Database.Zonas.NombresParametros = new[] { "IdTorneo" };
-            ((ObjZonas)App.Database.Zonas.Objeto).IdTorneo = ((ObjTorneos)Objeto).ID;
-            App.Database.Zonas.ObjetoToParametros();
+            SqlPersist.Zonas.NombresParametros = new[] { "IdTorneo" };
+            ((ObjZonas)SqlPersist.Zonas.Objeto).IdTorneo = ((ObjTorneos)Objeto).ID;
+            SqlPersist.Zonas.ObjetoToParametros();
 
-            return await App.Database.Zonas.GetZonasAsync();
+            return await SqlPersist.Zonas.GetZonasAsync();
         }
 
         public async Task<List<ObjZonas>> MisZonas(int NivelLlave)
         {
-            App.Database.Zonas.NombresParametros = new[] { "IdTorneo", "NivelLlave" };
-            App.Database.Zonas.ValoresParametros = new object[] { this.pTorneo.oTorneo.ID, NivelLlave};
+            SqlPersist.Zonas.NombresParametros = new[] { "IdTorneo", "NivelLlave" };
+            SqlPersist.Zonas.ValoresParametros = new object[] { this.bTorneo.oTorneo.ID, NivelLlave};
 
-            return await App.Database.Zonas.GetZonasAsync();
+            return await SqlPersist.Zonas.GetZonasAsync();
         }
 
         public async Task<Boolean> TienePartidos()
@@ -345,11 +266,11 @@ namespace TanteadorV4
 
         public async Task<List<ObjPartidos>> MisPartidos()
         {
-            App.Database.JOIN.AddParametrosString("IdTorneo");
-            App.Database.JOIN.ValoresParametros = new object[] { ((ObjTorneos)Objeto).ID };
+            SqlPersist.JOIN.AddParametrosString("IdTorneo");
+            SqlPersist.JOIN.ValoresParametros = new object[] { ((ObjTorneos)Objeto).ID };
 
             
-            return await App.Database.JOIN.GetPartidos_Zona_Async();
+            return await SqlPersist.JOIN.GetPartidos_Zona_Async();
         }
 
         public async Task<int> UltimaFecha()
@@ -369,7 +290,8 @@ namespace TanteadorV4
             if (LZ.Count > 0)
                 mensaje = mensaje + (mensaje != "" ? ", " : "") + "tiene Zonas";
 
-            List<ObjEquipos> LE = await MisEquipos();
+            this.pTorneo.oTorneo = this.oTorneo;
+            List<ObjEquipos> LE = await pTorneo.MisEquipos();
             if (LE.Count > 0)
                 mensaje = mensaje + (mensaje != "" ? ", " : "") + "tiene Equipos";
 
@@ -380,8 +302,8 @@ namespace TanteadorV4
 
         public void BorrarTorneoGenerado()
         {
-            App.Database.Torneos.oTorneo = this.pTorneo.oTorneo;
-            App.Database.Torneos.BorrarTorneoGenerado();
+            SqlPersist.Torneos.oTorneo = this.pTorneo.oTorneo;
+            SqlPersist.Torneos.BorrarTorneoGenerado();
         }
 
         public async Task<Boolean> PartidosFinalizados(int Nivel)
@@ -399,12 +321,28 @@ namespace TanteadorV4
 
             return B;
         }
+        */
     }
 
 
     public class VmZonas : VmBase
     {
-        public SqlPersistZonas pZona {set { _Persist = value; } get{ return (SqlPersistZonas)_Persist; } }
+        public BiZonas bZona { get { return BI.Zonas; } }
+        public ObjZonas oZona { set { Objeto = value; } get { return (ObjZonas)Objeto; } }
+
+
+        public VmZonas() : base()
+        {//Constructor
+            oZona = new ObjZonas();
+        }
+
+        public override BiBase getBi() { return bZona; }
+
+        public override void NewObject()
+        {
+            oZona = new ObjZonas();
+        }
+
 
         IList<ObjEquipos> _Equipos;
         public IList<ObjEquipos> Equipos
@@ -441,53 +379,48 @@ namespace TanteadorV4
         }
 
 
-        public override SqlPersistObject getPersist()
-        {
-            return App.Database.Zonas;
-        }
-
-        public override void NewObject()
-        {
-            Objeto = new ObjZonas();
-        }
 
         public override void setItemPropertiesFromObject()
         {
-            if (this.pZona.oZona == null)
+            if (this.bZona.pZona.oZona == null)
             {
                 ((ObjZonas)Objeto).IdTorneo = _ItemAtras.Objeto.ID;
 
-                App.Database.Equipos.AddParametrosString("IdTorneo,IdZona");
-                App.Database.Equipos.ValoresParametros = new object[] { ((ObjZonas)Objeto).IdTorneo, 0 };
+                SqlPersist.Equipos.AddParametrosString("IdTorneo,IdZona");
+                SqlPersist.Equipos.ValoresParametros = new object[] { ((ObjZonas)Objeto).IdTorneo, 0 };
 
-                Equipos = App.Database.Equipos.GetEquiposAsync().Result;
+                Equipos = SqlPersist.Equipos.GetEquiposAsync().Result;
 
                 _SelectedCabecera = null;
                 OnPropertyChanged("SelectedCabecera");
             }
             else
             {
-                this.pZona.oZona.IdTorneo = this.ItemAtras.Objeto.ID; //Cargo el Id de Torneo.
+                this.bZona.pZona.oZona.IdTorneo = this.ItemAtras.Objeto.ID; //Cargo el Id de Torneo.
 
                 Object[] V = { ((ObjZonas)Objeto).ID };
-                App.Database.JOIN.AddParametros(new[] { "L.IdZona" }, V);
-                Equipos = App.Database.JOIN.GetEquipos_ListaEquiposAsync().Result;
+                SqlPersist.JOIN.AddParametros(new[] { "L.IdZona" }, V);
+                Equipos = SqlPersist.JOIN.GetEquipos_ListaEquiposAsync().Result;
 
                 SelectedCabecera = Equipos.SingleOrDefault(a => a.ID == ((ObjZonas)Objeto).IdEquipoCabezaDeSerie);
             }
         }
 
+        protected override void SetAtrasFK()
+        {
+            this.oZona.IdTorneo = this.ItemAtras.Objeto.ID;
+        }
 
-
+/*
         public async Task<int> AddEquipo(ObjEquipos Equipo)
         {
             ObjListaEquipos Item = new ObjListaEquipos();
             Item.IdEquipo = Equipo.ID;
             Item.IdZona = Objeto.ID;
-            await App.Database.ListaEquipos.InsertItemAsync(Item);
+            await SqlPersist.ListaEquipos.InsertItemAsync(Item);
 
             Equipo.IdZona = Objeto.ID;
-            await App.Database.Equipos.UpdateItemAsync(Equipo);
+            await SqlPersist.Equipos.UpdateItemAsync(Equipo);
 
             return 0;
         }
@@ -495,7 +428,7 @@ namespace TanteadorV4
         public async Task<int> GuardarPartidos(List<ObjPartidos> listaPartidos)
         {
             foreach (ObjPartidos Partido in listaPartidos)
-                await App.Database.Partidos.InsertItemAsync(Partido);
+                await SqlPersist.Partidos.InsertItemAsync(Partido);
 
             return 0;
         }
@@ -504,27 +437,27 @@ namespace TanteadorV4
         {
             string[] N = { "IdZona"};
             Object[] V = { ((ObjZonas)Objeto).ID };
-            App.Database.Equipos.AddParametros(N, V);
+            SqlPersist.Equipos.AddParametros(N, V);
 
-            return await App.Database.Equipos.GetEquiposAsync();
+            return await SqlPersist.Equipos.GetEquiposAsync();
         }
 
         public async Task<List<ObjEquipoListaEquipos>> MisEquiposListaEquipos()
         {
             string[] N = { "L.IdZona" };
             Object[] V = { ((ObjZonas)Objeto).ID };
-            App.Database.JOIN.AddParametros(N, V);
+            SqlPersist.JOIN.AddParametros(N, V);
 
-            return await App.Database.JOIN.GetEquiposListaEquiposAsync();
+            return await SqlPersist.JOIN.GetEquiposListaEquiposAsync();
         }
 
         public async Task<Boolean> PartidosFinalizados()
         {
             Boolean B = false;
 
-            App.Database.Partidos.AddParametrosString("IdZona, Finalizado");
-            App.Database.Partidos.ValoresParametros = new object[] { this.Objeto.ID, false };
-            List<ObjId> L = await App.Database.Partidos.GetItemsAsync();
+            SqlPersist.Partidos.AddParametrosString("IdZona, Finalizado");
+            SqlPersist.Partidos.ValoresParametros = new object[] { this.Objeto.ID, false };
+            List<ObjId> L = await SqlPersist.Partidos.GetItemsAsync();
 
             B = L.Count == 0;
 
@@ -535,21 +468,18 @@ namespace TanteadorV4
         {
             List<ObjEquipos> ListaEquipos = new List<ObjEquipos>();
 
-            SqlPersistTorneos Torneo = new SqlPersistTorneos();
-            Torneo.Objeto.ID = this.pZona.oZona.IdTorneo;
+            VmTorneos Torneo = new VmTorneos();
+            Torneo.oTorneo.ID = this.pZona.oZona.IdTorneo;
             await Torneo.Load();
 
             int CantidadClasificados = Torneo.oTorneo.CantidadClasificadosXZona;
-
-            string[] N = { "IdZona" };
-            Object[] V = { ((ObjZonas)Objeto).ID };
-            App.Database.Equipos.AddParametros(N, V);
-
-            List<ObjEquipoListaEquipos> Lista = await App.Database.JOIN.GetEquiposListaEquiposAsync(" order by Puntos ");
+            
+            SqlPersist.JOIN.AddParametro_Only("L.IdZona", ((ObjZonas)Objeto).ID);
+            List<ObjEquipoListaEquipos> Lista = await SqlPersist.JOIN.GetEquiposListaEquiposAsync(" order by Puntos ");
             
             for(int i=0; i<CantidadClasificados; i++)
             {
-                SqlPersistEquipos Equipo = new SqlPersistEquipos();
+                VmEquipos Equipo = new VmEquipos();
                 Equipo.oEquipo.ID = Lista[i].ID;
                 await Equipo.Load();
 
@@ -559,39 +489,97 @@ namespace TanteadorV4
             return (ListaEquipos);
         }
 
-        public async Task<Boolean> CompletarZona_yPartidos()
-        {            
-            List<ObjEquipos> EquiposClasificados = await this.MisEquiposClasificados();
+        public async Task<Boolean> CompletarZona_yPartidos(ObjZonas Zona)
+        { // Para cada Zona "llave", arma la lista de Equipos y los partidos*
 
-            List<ObjListaEquipos> Lista = new List<ObjListaEquipos>();
-            ObjListaEquipos EquipoLista = new ObjListaEquipos();
+            VmListaEquipos vmListaEquipos = new VmListaEquipos();
+            VmZonas vmZona = new VmZonas();
+            VmEquipos vmEquipo = new VmEquipos();
+            VmPartidos Partidos = new VmPartidos();
 
-            EquipoLista.IdEquipo = (EquiposClasificados[this.pZona.oZona.PosicionZ1]).ID;
-            EquipoLista.IdZona = this.Objeto.ID;
-            EquipoLista.Puntos = 0;
+            //---------------------------
+            //  Busco el primer Equipo
 
-            Lista.Add(EquipoLista);
+            vmZona.oZona.ID = Zona.IdZ1;
+            await vmZona.Load();
+            List<ObjEquipos> EquiposClasificados = await vmZona.MisEquiposClasificados();
 
-            EquipoLista = new ObjListaEquipos();
+            ObjListaEquipos itemEquipoLista = new ObjListaEquipos();
+            itemEquipoLista.IdEquipo = ((ObjEquipos)EquiposClasificados[Zona.PosicionZ1 -1]).ID;
+            itemEquipoLista.IdZona = this.Objeto.ID;
+            itemEquipoLista.Puntos = 0;
 
-            EquipoLista.IdEquipo = (EquiposClasificados[this.pZona.oZona.PosicionZ2]).ID;
-            EquipoLista.IdZona = this.Objeto.ID;
-            EquipoLista.Puntos = 0;
+            await vmListaEquipos.AddEquipo(itemEquipoLista);
+
+            //Modifico la zona del Equipo
+            vmEquipo.oEquipo.ID = itemEquipoLista.IdEquipo;
+            await vmEquipo.Load();
+            vmEquipo.oEquipo.IdZona = Zona.ID;
+            await vmEquipo.GuardarItem(EnumOperacion.Actualiza);           
+
+            int IdEquipo1 = itemEquipoLista.IdEquipo;
+
+            //---------------------
+            // El otro Equipo
+                        
+            vmZona.oZona.ID = Zona.IdZ2;
+            await vmZona.Load();
+            EquiposClasificados = await vmZona.MisEquiposClasificados();
+
+            itemEquipoLista = new ObjListaEquipos();
+            itemEquipoLista.IdEquipo = (EquiposClasificados[Zona.PosicionZ2 -1]).ID;
+            itemEquipoLista.IdZona = Zona.ID;
+            itemEquipoLista.Puntos = 0;
+
+            await vmListaEquipos.AddEquipo(itemEquipoLista);
+
+            // Modifico la zona del Equipo
+            vmEquipo = new VmEquipos();
+            vmEquipo.oEquipo.ID = itemEquipoLista.IdEquipo;
+            await vmEquipo.Load();
+            vmEquipo.oEquipo.IdZona = Zona.ID;
+            await vmEquipo.GuardarItem(EnumOperacion.Actualiza);
+
+            int IdEquipo2 = itemEquipoLista.IdEquipo;
+            //---------------------
+
+            // Crear partido
+            Partidos.oPartido.IdEquipo1 = IdEquipo1;
+            Partidos.oPartido.IdEquipo2 = IdEquipo2;
+            Partidos.oPartido.IdZona = Zona.ID;
+
+            string NombrePartido = "";
+            vmEquipo.oEquipo.ID = IdEquipo1;
+            await vmEquipo.Load();
+            NombrePartido = vmEquipo.oEquipo.Nombre;
+
+            vmEquipo.oEquipo.ID = IdEquipo2;
+            await vmEquipo.Load();
+            NombrePartido = NombrePartido + " vs " + vmEquipo.oEquipo.Nombre;
+
+            Partidos.oPartido.Nombre = NombrePartido;
+            await Partidos.pPartidos.InsertItemAsync(Partidos.pPartidos.oPartido);
+            
+            //-------------------------------------------
 
             return true;
         }
-
+*/
     }
 
 
     public class VmEquipos : VmBase
     {
-        public SqlPersistEquipos pEquipo { set { _Persist = value; } get { return (SqlPersistEquipos)_Persist; } }
+        public BiEquipos bEquipo { get { return BI.Equipos; } }
+        public ObjEquipos oEquipo { set { Objeto = value; } get { return (ObjEquipos)Objeto; } }
 
-        public override SqlPersistObject getPersist()
-        {
-            return App.Database.Equipos;
+
+        public VmEquipos() : base()
+        {//Constructor
+            oEquipo = new ObjEquipos();
         }
+
+        public override BiBase getBi() { return bEquipo; }
 
         public override async void NewObject()
         {
@@ -599,64 +587,93 @@ namespace TanteadorV4
             ((ObjEquipos)Objeto).IdTorneo = _ItemAtras.Objeto.ID;
         }
 
-        public async Task<List<ObjPartidos>> MisPartidos()
+        protected override void SetAtrasFK()
         {
-            App.Database.Partidos.AddParametrosString("IdEquipo1");
-            App.Database.Partidos.ValoresParametros = new object[] { pEquipo.Objeto.ID };
-            List<ObjPartidos> r = await App.Database.Partidos.GetPartidosAsync();
-
-            App.Database.Partidos.AddParametrosString("IdEquipo2");
-            App.Database.Partidos.ValoresParametros = new object[] { pEquipo.Objeto.ID };
-            List<ObjPartidos> r2 = await App.Database.Partidos.GetPartidosAsync();
-
-            r.Concat<ObjId>(r2);
-
-            return r;
+            ObjZonas Z = (ObjZonas)this.ItemAtras.Objeto;
+            this.oEquipo.IdZona = Z.ID;
+            this.oEquipo.IdTorneo = Z.IdTorneo;
         }
+        /*
+                public async Task<List<ObjPartidos>> MisPartidos()
+                {
+                    SqlPersist.Partidos.AddParametrosString("IdEquipo1");
+                    SqlPersist.Partidos.ValoresParametros = new object[] { pEquipo.Objeto.ID };
+                    List<ObjPartidos> r = await SqlPersist.Partidos.GetPartidosAsync();
 
-        public async Task<double> Puntos(int IdZona)
-        {/*Devuelve la cantidad de puntos del equipo en la zona*/
-            double P = 0;
+                    SqlPersist.Partidos.AddParametrosString("IdEquipo2");
+                    SqlPersist.Partidos.ValoresParametros = new object[] { pEquipo.Objeto.ID };
+                    List<ObjPartidos> r2 = await SqlPersist.Partidos.GetPartidosAsync();
 
-            SqlPersistZonas Zona = App.Database.Zonas;
-            Zona.oZona.ID = IdZona;
-            await Zona.Load();
+                    r.Concat<ObjId>(r2);
 
-            SqlPersistTorneos Torneo = App.Database.Torneos;
-            Torneo.oTorneo.ID = Zona.oZona.IdTorneo;
-            await Torneo.Load();
+                    return r;
+                }
 
-            int C_Ganados = await pEquipo.CantidadPartidosGanados(IdZona);
-            int C_Empatados = await pEquipo.CantidadPartidosEmpatados(IdZona);
-            int C_Perdidos = await pEquipo.CantidadPartidosPerdidos(IdZona);
+                public async Task<double> Puntos(int IdZona)
+                {//Devuelve la cantidad de puntos del equipo en la zona
+                    double P = 0;
 
-            P = (C_Ganados * Torneo.oTorneo.Puntos_xGanados) + (C_Empatados * Torneo.oTorneo.Puntos_xEmpatados) + (C_Perdidos * Torneo.oTorneo.Puntos_xPerdidos);
+                    SqlPersistZonas Zona = SqlPersist.Zonas;
+                    Zona.oZona.ID = IdZona;
+                    await Zona.Load();
 
-            return P;
-        }
-        
+                    SqlPersistTorneos Torneo = SqlPersist.Torneos;
+                    Torneo.oTorneo.ID = Zona.oZona.IdTorneo;
+                    await Torneo.Load();
+
+                    int C_Ganados = await pEquipo.CantidadPartidosGanados(IdZona);
+                    int C_Empatados = await pEquipo.CantidadPartidosEmpatados(IdZona);
+                    int C_Perdidos = await pEquipo.CantidadPartidosPerdidos(IdZona);
+
+                    P = (C_Ganados * Torneo.oTorneo.Puntos_xGanados) + (C_Empatados * Torneo.oTorneo.Puntos_xEmpatados) + (C_Perdidos * Torneo.oTorneo.Puntos_xPerdidos);
+
+                    return P;
+                }
+
+                */
     }
 
 
     public class VmListaEquipos : VmBase, INavigationVM
     {
-        public override VmBase ItemAtras { set; get; }
+        public BiListaEquipos bListaEquipo { get { return BI.ListaEquipos; } }
+        public ObjListaEquipos oListaEquipo { set; get;}
 
-        public override SqlPersistObject getPersist()
-        {
-            return App.Database.ListaEquipos;
+
+        public VmListaEquipos() : base()
+        {//Constructor
+            oListaEquipo = new ObjListaEquipos();
         }
 
+        public override BiBase getBi()
+        {
+            return bListaEquipo;
+        }
+
+        public override VmBase ItemAtras { set; get; }
+
+/*
         public virtual async Task<List<ObjId>> RetornarLista_Equipos(int IdTorneo)
         {
             //Persist = getPersist();
-            //return await App.Database.ListaEquipos.GetItemsAsync_EquiposDisponibles(IdTorneo);
+            //return await SqlPersist.ListaEquipos.GetItemsAsync_EquiposDisponibles(IdTorneo);
             return null;
         }
 
         public virtual async Task<List<ObjId>> RetornarLista_EquiposZona(int IdZona)
-        {/* Retorna los equipos que estan en una zona, segun la lista zona */
-            return await App.Database.ListaEquipos.GetItemsAsync_EquiposZona(IdZona);
+        {// Retorna los equipos que estan en una zona, segun la lista zona 
+            return await SqlPersist.ListaEquipos.GetItemsAsync_EquiposZona(IdZona);
+        }
+
+        public override async Task<string> GuardarItem(EnumOperacion Operacion)
+        {
+            throw new Exception("No se puede usar este método, usar AddEquipo");
+            return "No se puede usar este método, usar AddEquipo";
+        }
+
+        public async Task AddEquipo(ObjListaEquipos item)
+        {
+            await SqlPersist.ListaEquipos.InsertItemAsync(item);
         }
 
         public async Task AddEquipo(ObjEquipos Equipo)
@@ -664,10 +681,10 @@ namespace TanteadorV4
             ObjListaEquipos Item = new ObjListaEquipos();
             Item.IdZona = ItemAtras.Objeto.ID; //es una zona
             Item.IdEquipo = Equipo.ID;
-            await App.Database.ListaEquipos.InsertItemAsync(Item);
+            await SqlPersist.ListaEquipos.InsertItemAsync(Item);
 
             Equipo.IdZona = ItemAtras.Objeto.ID;
-            await App.Database.Equipos.UpdateItemAsync(Equipo);
+            await SqlPersist.Equipos.UpdateItemAsync(Equipo);
         }
 
         public async Task RemoveEquipo(ObjEquipos Equipo)
@@ -675,26 +692,33 @@ namespace TanteadorV4
             ObjListaEquipos Item = new ObjListaEquipos();
             Item.IdZona = ItemAtras.Objeto.ID; //es una zona
             Item.IdEquipo = Equipo.ID;
-            await App.Database.ListaEquipos.DeleteItemListaEquipo(Item);
+            await SqlPersist.ListaEquipos.DeleteItemListaEquipo(Item);
 
             if (Equipo.IdZona == ItemAtras.Objeto.ID)
             {
                 Equipo.IdZona = 0;
-                await App.Database.Equipos.UpdateItemAsync(Equipo);
+                await SqlPersist.Equipos.UpdateItemAsync(Equipo);
             }
         }
 
-
+*/
     }
 
 
     public class VmPartidos: VmBase
     {
-        public SqlPersistPartidos pPartidos { set { _Persist = value; } get { return (SqlPersistPartidos)_Persist; } }
+        public BiPartidos bPartido { get { return BI.Partidos; } }
+        public ObjPartidos oPartido { set { Objeto = value; } get { return (ObjPartidos)Objeto; } }
 
-        public override SqlPersistObject getPersist()
+
+        public VmPartidos() : base()
+        {//Constructor
+            oPartido = new ObjPartidos();
+        }
+
+        public override BiBase getBi()
         {
-            return App.Database.Partidos;
+            return bPartido;
         }
 
         public override async void NewObject()
@@ -702,10 +726,10 @@ namespace TanteadorV4
             Objeto = new ObjPartidos();
             ((ObjPartidos)Objeto).IdZona = _ItemAtras.Objeto.ID;
 
-            App.Database.Equipos.AddParametrosString("IdZona");
-            App.Database.Equipos.ValoresParametros = new object[] { ((ObjPartidos)Objeto).IdZona };
+            SqlPersist.Equipos.AddParametrosString("IdZona");
+            SqlPersist.Equipos.ValoresParametros = new object[] { ((ObjPartidos)Objeto).IdZona };
 
-            MisEquipos = await App.Database.Equipos.GetEquiposAsync(); ;            
+            MisEquipos = await SqlPersist.Equipos.GetEquiposAsync(); ;            
 
             _selectedEquipo1 = null;
             OnPropertyChanged("SelectedEquipo1");
@@ -715,10 +739,10 @@ namespace TanteadorV4
 
         public override void setItemPropertiesFromObject()
         {
-            App.Database.JOIN.AddParametro_Only("L.IdZona", this.ItemAtras.Objeto.ID);
-            //App.Database.JOIN.Add_ParametrosQry("IdZona");
+            SqlPersist.JOIN.AddParametro_Only("L.IdZona", this.ItemAtras.Objeto.ID);
+            //SqlPersist.JOIN.Add_ParametrosQry("IdZona");
 
-            MisEquipos = App.Database.JOIN.GetEquipos_ListaEquiposAsync().Result;
+            MisEquipos = SqlPersist.JOIN.GetEquipos_ListaEquiposAsync().Result;
             SelectedEquipo1 = MisEquipos.SingleOrDefault(a => a.ID == ((ObjPartidos)Objeto).IdEquipo1);
             SelectedEquipo2 = MisEquipos.SingleOrDefault(a => a.ID == ((ObjPartidos)Objeto).IdEquipo2);
         }
@@ -776,7 +800,7 @@ namespace TanteadorV4
                 }
             }
         }
-
+/*
         public override string ItemValido()
         {
             string Mensaje = "";
@@ -796,7 +820,7 @@ namespace TanteadorV4
             Equipo.pEquipo.oEquipo.ID = pPartidos.oPartido.IdEquipo1;
             await Equipo.pEquipo.Load();
 
-            SqlPersistListaEquipos Lista = App.Database.ListaEquipos;
+            SqlPersistListaEquipos Lista = SqlPersist.ListaEquipos;
             Lista.oListaEquipos.IdEquipo = pPartidos.oPartido.IdEquipo1;
             Lista.oListaEquipos.IdZona = pPartidos.oPartido.IdZona;
             await Lista.Load();
@@ -817,7 +841,7 @@ namespace TanteadorV4
             Lista.oListaEquipos.Puntos = await Equipo.Puntos(pPartidos.oPartido.IdZona);
             re = await Lista.UpdateItemAsync(Lista.oListaEquipos);
 
-            /*  Armar las zonas de la llave */
+            //  Armar las zonas de la llave 
 
             VmZonas Z = new VmZonas();
             Z.pZona.oZona.ID = pPartidos.oPartido.IdZona;
@@ -829,31 +853,49 @@ namespace TanteadorV4
 
             Boolean partidosFinalizados = await Torneo.PartidosFinalizados(Z.pZona.oZona.NivelLLave);
             
-            if ....
+            if (partidosFinalizados == true)
+            {
+                List<ObjZonas> ListaZonas = await Torneo.MisZonas(Z.pZona.oZona.NivelLLave + 1);
+                if (ListaZonas.Count > 0) //Si no es mayor que 0 es porque ya estamos en la final
+                {
+                    foreach (ObjZonas Zi in ListaZonas)
+                    {
+                        //Z.oZona = Zi;
+                        await Z.CompletarZona_yPartidos(Zi);
+                    }
+                }
+            }
 
             return "";
         }
-
+        */
     }
 
 
     public class VmJugadores : VmBase
     {
-        public SqlPersistJugadores pJugadores { set { _Persist = value; } get { return (SqlPersistJugadores)_Persist; } }
+        public BiJugadores bJugador { get { return BI.Jugadores; } }
+        public ObjJugadores oJugador { set { Objeto = value; } get { return (ObjJugadores)Objeto; } }
 
-        public override SqlPersistObject getPersist()
+
+        public VmJugadores() : base()
+        {//Constructor
+            oJugador = new ObjJugadores();
+        }
+
+        public override BiBase getBi()
         {
-            return App.Database.Jugadores;
+            return bJugador;
         }
 
         public override async void NewObject()
         {
             Objeto = new ObjJugadores();
-            ((ObjJugadores)Objeto).IdEquipo = ((VmEquipos)_ItemAtras).pEquipo.oEquipo.ID;
+            ((ObjJugadores)Objeto).IdEquipo = ((VmEquipos)_ItemAtras).bEquipo.pEquipo.oEquipo.ID;
 
             VmTorneos Torneo = new VmTorneos();
-            Torneo.pTorneo.oTorneo.ID = ((VmEquipos)_ItemAtras).pEquipo.oEquipo.IdTorneo;            
-            MisEquipos = await Torneo.MisEquipos();
+            Torneo.bTorneo.pTorneo.oTorneo.ID = ((VmEquipos)_ItemAtras).bEquipo.pEquipo.oEquipo.IdTorneo;            
+            MisEquipos = await Torneo.bTorneo.MisEquipos();
 
             _selectedEquipo = null;
             OnPropertyChanged("SelectedEquipo");
@@ -862,8 +904,8 @@ namespace TanteadorV4
         public override void setItemPropertiesFromObject()
         {
             VmTorneos Torneo = new VmTorneos();
-            Torneo.pTorneo.oTorneo.ID = ((VmEquipos)_ItemAtras).pEquipo.oEquipo.IdTorneo;
-            MisEquipos = Torneo.MisEquipos().Result;
+            Torneo.bTorneo.pTorneo.oTorneo.ID = ((VmEquipos)_ItemAtras).bEquipo.pEquipo.oEquipo.IdTorneo;
+            MisEquipos = Torneo.bTorneo.MisEquipos().Result;
             SelectedEquipo = MisEquipos.SingleOrDefault(a => a.ID == ((ObjJugadores)Objeto).IdEquipo);
         }
 

@@ -45,12 +45,12 @@ namespace TanteadorV4
 
     class Funciones
     {
-        public async void GenerarTorneos(VmTorneos Torneo)
+        public async Task<bool> GenerarTorneos(BiTorneos Torneo)
         {/*Genera los partidos del Torneo*/
             List<ObjEquipos> Equipos = await Torneo.MisEquiposQueNoSonCabecera();
             List<ObjZonas> Zonas = await Torneo.MisZonas();
 
-            VmZonas zonaVM = new VmZonas();
+            BiZonas zonaVM = new BiZonas();
 
             /*Verifia que existan las zonas*/
             if (Zonas.Count > 0)
@@ -71,7 +71,7 @@ namespace TanteadorV4
                             if (z.IdEquipoCabezaDeSerie == 0)
                             {
                                 z.IdEquipoCabezaDeSerie = E.ID;
-                                await App.Database.Zonas.UpdateItemAsync(z);
+                                await SqlPersist.Zonas.UpdateItemAsync(z);
                             }
                         }
                     }
@@ -82,18 +82,20 @@ namespace TanteadorV4
                 foreach (ObjZonas z in Zonas)
                 {
                     zonaVM.Objeto = z;
-                    zonaVM.ItemAtras = Torneo;
+                    //zonaVM.ItemAtras = Torneo;
                     int R = await GenerarPartidos(zonaVM);
                 }
 
                 ObjTorneos T = ((ObjTorneos)Torneo.Objeto);
                 if (T.IdaYVuelta == 1)
                 {
-                    var r = await GenerarPartidosVuelta(Torneo);
+                    var r = await GenerarPartidosVuelta(T);
                 }
 
                 GenerarLlave(Torneo.Objeto.ID);
             }
+
+            return true;
         }
 
         private ObjEquipos UnEquipo(List<ObjEquipos> Equipos)
@@ -105,14 +107,14 @@ namespace TanteadorV4
             return Equipo;
         }
 
-        private async Task<int> GenerarPartidos(VmZonas zonaVM)
+        private async Task<int> GenerarPartidos(BiZonas zonaVM)
         {
             int Mitad;
             int Cantidad;
 
             //zonaVM.setItemPropertiesFromObject();
 
-            VmPartidos PartidosVM = new VmPartidos();
+            BiPartidos PartidosVM = new BiPartidos();
 
             List<ObjEquipos> losEquipos = new List<ObjEquipos>();
 
@@ -176,13 +178,13 @@ namespace TanteadorV4
             return 0;
         }
 
-        private async Task<int> GenerarPartidosVuelta(VmTorneos Torneo)
+        private async Task<int> GenerarPartidosVuelta(ObjTorneos T)
         {
-            VmPartidos PartidosVM = new VmPartidos();
+            BI.Torneos.oTorneo = T;
 
-            int UltimaFecha = await Torneo.UltimaFecha();
+            int UltimaFecha = await BI.Torneos.UltimaFecha();
 
-            List<ObjPartidos> Partidos_Ida = await Torneo.MisPartidos();
+            List<ObjPartidos> Partidos_Ida = await BI.Torneos.MisPartidos();
             foreach (ObjPartidos P in Partidos_Ida)
             {
                 ObjPartidos newP = new ObjPartidos();
@@ -195,45 +197,34 @@ namespace TanteadorV4
                 //newP.PartidoRevancha = 1;
 
                 string NombrePartido = "";
-                VmEquipos Equipo = new VmEquipos();
+                ObjEquipos E = new ObjEquipos();
+                //BiEquipos Equipo = new BiEquipos();
 
                 if (P.IdEquipo2 > 0)
                 {
-                    Equipo.pEquipo.oEquipo.ID = P.IdEquipo2;
-                    await Equipo.pEquipo.Load();
-                    NombrePartido = Equipo.pEquipo.oEquipo.Nombre;
+                    E = await BI.Equipos.LoadxID(P.IdEquipo2);
+                    NombrePartido = E.Nombre;
                 }
                 else
                     NombrePartido = NombrePartido + " vs " + "- Fecha Libre -";
 
                 if (P.IdEquipo1 > 0)
                 {
-                    Equipo.pEquipo.oEquipo.ID = P.IdEquipo1;
-                    await Equipo.pEquipo.Load();
-                    NombrePartido = NombrePartido + " vs " + Equipo.pEquipo.oEquipo.Nombre;
+                    E = await BI.Equipos.LoadxID(P.IdEquipo1);
+                    NombrePartido = E.Nombre;
                 }
                 else
                     NombrePartido = NombrePartido +" vs " + "- Fecha Libre -";
-
+                               
 
                 newP.Nombre = NombrePartido;
+                await BI.Partidos.Set(newP).GuardarItem(EnumOperacion.Nuevo);
 
-                PartidosVM.pPartidos.oPartido = newP;
-
-
-                PartidosVM.Objeto = newP;
-
-                VmZonas Zona = new VmZonas();
-                Zona.pZona.oZona.ID = P.IdZona;
-                PartidosVM.ItemAtras = Zona;
-                
-                PartidosVM.setItemPropertiesFromObject();
-                await PartidosVM.GuardarItem(EnumOperacion.Nuevo);
             }
             return 0;
         }
 
-        public void BorrarTorneoGenerado(VmTorneos Torneo)
+        public void BorrarTorneoGenerado(BiTorneos Torneo)
         {
             Torneo.BorrarTorneoGenerado();
         }
@@ -241,7 +232,7 @@ namespace TanteadorV4
         public async void GenerarLlave(int IdTorneo)
         {
             int t = 1;
-            VmTorneos Torneo = new VmTorneos();
+            BiTorneos Torneo = new BiTorneos();
             Torneo.Objeto.ID = IdTorneo;
             await Torneo.pTorneo.Load();
 
@@ -251,7 +242,7 @@ namespace TanteadorV4
             int CantidadZonas = Zonas.Count;
             
 
-            VmZonas vZonas = new VmZonas();
+            BiZonas vZonas = new BiZonas();
 
             ObjZonas Z1, Z2, ZonaNueva;
 
@@ -259,12 +250,21 @@ namespace TanteadorV4
             {
                 Z1 = Zonas[i];
 
-                if (i == Zonas.Count - 1)
-                    Z2 = Zonas[0];
-                else
-                    Z2 = Zonas[i+1];
+                int Cant_Clas = 0;
 
-                for (int j = 0; j < Math.Ceiling((double)Clasificados / 2); j++)
+                if (i == Zonas.Count - 1)
+                { 
+                    Z2 = Zonas[0];
+                    Cant_Clas = (int)((double)Clasificados / 2);
+                }
+                else
+                {
+                    Z2 = Zonas[i + 1];
+                    Cant_Clas = (int)Math.Ceiling((double)Clasificados / 2);
+                }
+                    
+
+                for (int j = 0; j < Cant_Clas; j++)
                 {
                     ZonaNueva = new ObjZonas();
                     ZonaNueva.IdZ1 = Z1.ID;
@@ -340,5 +340,8 @@ namespace TanteadorV4
 
 
         }
+
+         
+
     }
 }

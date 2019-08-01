@@ -9,19 +9,22 @@ namespace TanteadorV4
     public partial class App : Application
     {
         public static NavigationPage navigationP = new NavigationPage();
-        static SqlPersist database;
 
         public App()
         {
+
             InitializeComponent();
 
             MainPage = navigationP;
 
             navigationP.PushAsync(new MainPage());
-            
+
+            SqlPersist.SqlPersist_Config(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SqlPersist.db3"));
+
+
         }
 
-        public static SqlPersist Database
+        /*public static SqlPersist Database
         {
             get
             {
@@ -31,7 +34,7 @@ namespace TanteadorV4
                 }
                 return database;
             }
-        }
+        }*/
 
         public void keyLeft()
         {
