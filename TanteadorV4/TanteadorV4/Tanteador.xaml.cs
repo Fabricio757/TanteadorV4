@@ -478,7 +478,8 @@ namespace TanteadorV4
         private async void l_Config_Tapped(object sender, EventArgs e)
         {
             //StackL_Config.IsVisible = true;
-            await App.navigationP.PushAsync(new Administracion());
+            //await App.navigationP.PushAsync(new Administracion());
+            await App.navigationP.PopAsync();
         }
 
         private void b_Ok_GeneralInput_Clicked(object sender, EventArgs e)

@@ -16,25 +16,6 @@ namespace TanteadorV4
     public enum EnumOperacion { Nuevo, Actualiza };
     public enum EnumBindingType { Objeto, Item };
 
-    /*
-    public class IntToGridLengthConverter : IValueConverter
-    {
-        public IntToGridLengthConverter()
-        {
-        }
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            var intValue = System.Convert.ToInt32(value);
-            return new GridLength(intValue, GridUnitType.Star);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }*/
-
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class Page1 : ContentPage
     {
@@ -142,6 +123,7 @@ namespace TanteadorV4
                 if (ItemTorneo != null)
                     if (ItemTorneo.Objeto.ID > 0)
                     {
+                        ItemTorneo.ConectarBI();
                         Boolean b = await ItemTorneo.bTorneo.TienePartidos();
 
                         if (b)
@@ -201,6 +183,11 @@ namespace TanteadorV4
 
         private async Task RefreshList()
         {
+            /* Paso los parámetros Persistentes en VM a Persist(slqPersist) */
+            ItemVM.Bi.Persist.NombresParametros = ItemVM.NombresParametros;
+            ItemVM.Bi.Persist.ValoresParametros = ItemVM.ValoresParametros;
+            ItemVM.Bi.Persist.ConectoresParametros = ItemVM.ConectoresParametros;
+
             vmLista.ItemsSource = await ItemVM.Bi.RetornarLista();
         }
 
@@ -276,10 +263,12 @@ namespace TanteadorV4
 
                 if (controlesLimpios)
                 {
+                    ItemVM.ConectarBI();
                     Mensaje = await ItemVM.GuardarItem(EnumOperacion.Nuevo);
                 }
                 else
                 {
+                    ItemVM.ConectarBI();
                     Mensaje = await ItemVM.GuardarItem(EnumOperacion.Actualiza);
                 }
 
@@ -315,6 +304,7 @@ namespace TanteadorV4
         {
             try
             {
+                ItemVM.ConectarBI();
                 string Mensaje = await ItemVM.Bi.DeleteItem();
 
                 await this.DisplayAlert(Mensaje, "Resultado", "Ok");
@@ -331,6 +321,7 @@ namespace TanteadorV4
         {
             try
             {
+
                 controlesLimpios = false;
                 if (enumVista == EnumVista.vistaItem)
                 {
@@ -339,11 +330,18 @@ namespace TanteadorV4
                 }
                 else
                 {
-                    ItemVM = ItemVM.ItemAtras;
-                    ItemVM.setItemPropertiesFromObject();
-                    BindingContext = ItemVM;
-                    VistaItem();
-                    ItemVM.Mostrar(null);                    
+                    if (TituloABM.Text == "Torneos")
+                    {
+                        await App.navigationP.PopAsync();
+                    }
+                    else
+                    {
+                        ItemVM = ItemVM.ItemAtras;
+                        ItemVM.setItemPropertiesFromObject();
+                        BindingContext = ItemVM;
+                        VistaItem();
+                        ItemVM.Mostrar(null);
+                    };
                 };
             }
             catch (Exception Ex)
@@ -404,8 +402,8 @@ namespace TanteadorV4
                 ItemZona.ItemAtras = ItemTorneo;
 
                 //Cargo los parametros para filtrar las zonas de este torneo
-                ItemZona.bZona.pZona.NombresParametros = new[] { "IdTorneo" };
-                ItemZona.bZona.pZona.ValoresParametros = new object[] { ItemTorneo.Objeto.ID };
+                ItemZona.NombresParametros = new[] { "IdTorneo" };
+                ItemZona.ValoresParametros = new object[] { ItemTorneo.Objeto.ID };
 
                 ItemVM = ItemZona;
                 await VistaLista();
@@ -425,7 +423,7 @@ namespace TanteadorV4
                 ItemVM.Mostrar(null);
 
                 Object[] valoresParametros = new Object[] { ItemTorneo.bTorneo.pTorneo.oTorneo.ID };
-                ItemEquipos.bEquipo.pEquipo.AddParametros(new[] { "IdTorneo" }, valoresParametros);
+                ItemEquipos.AddParametros(new[] { "IdTorneo" }, valoresParametros);
 
                 await VistaLista();
             }
@@ -470,12 +468,12 @@ namespace TanteadorV4
                 ItemVM = ItemListaEquipos;
                 ItemVM.ItemAtras = ItemZona;
 
-
+                ItemTorneo.ConectarBI();
                 ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
+                ItemZona.ConectarBI();
                 ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
-                //ListaEquipos_Zona.ItemsSource = await ItemListaEquipos.RetornarLista_EquiposZona(ItemZona.Objeto.ID);
 
-               VistaDobleLista();
+                VistaDobleLista();
 
                 TituloABM.Text = "Lista de Equipos";
             }
@@ -490,7 +488,7 @@ namespace TanteadorV4
             ItemPartidos.ItemAtras = ItemZona;
             ItemVM = ItemPartidos;
 
-            ItemPartidos.bPartido.Persist.AddParametro_Only("IdZona", ItemZona.Objeto.ID);
+            ItemPartidos.AddParametro_Only("IdZona", ItemZona.Objeto.ID);
 
             await VistaLista();
         }
@@ -504,13 +502,23 @@ namespace TanteadorV4
         }
 
         private async void ListaEquipos_Torneo_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            ObjEquipos Item = (ObjEquipos)e.SelectedItem;
-            Item.IdZona = ItemVM.ItemAtras.Objeto.ID;
-            await ItemListaEquipos.bListaEquipo.AddEquipo(Item);
+        {//Agrego un equipo a la zona
+            try
+            {
+                ObjEquipos Item = (ObjEquipos)e.SelectedItem;
+                Item.IdZona = ItemVM.ItemAtras.Objeto.ID;
+                ItemListaEquipos.ConectarBI();
+                await ItemListaEquipos.bListaEquipo.AddEquipo(Item);
 
-            ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
-            ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
+                ItemTorneo.ConectarBI();
+                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
+                ItemZona.ConectarBI();
+                ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
+            }
+            catch (Exception Ex)
+            {
+                await this.DisplayAlert("Mensaje", Ex.Message, "Ok");
+            }
         }
 
         private async void ListaEquipos_Zona_ItemSelected(object sender, SelectedItemChangedEventArgs e)
@@ -519,22 +527,13 @@ namespace TanteadorV4
             {
                 ObjEquipoListaEquipos Item = (ObjEquipoListaEquipos)e.SelectedItem;
 
-                VmEquipos EquiposVM = new VmEquipos();
-                EquiposVM.Objeto.ID = Item.ID;
-                await EquiposVM.bEquipo.Load();
-                List<ObjPartidos> misPartidos = await EquiposVM.bEquipo.MisPartidos(Item.IdZona);
+                await ItemListaEquipos.bListaEquipo.RemoveEquipo(Item);
 
-                ObjEquipos Equipo = EquiposVM.oEquipo;
+                ItemTorneo.ConectarBI();
+                ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
+                ItemZona.ConectarBI();
+                ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
 
-                if ((misPartidos.Count == 0) && (((ObjZonas)ItemZona.Objeto).IdEquipoCabezaDeSerie != Equipo.ID))
-                {                
-                    await ItemListaEquipos.bListaEquipo.RemoveEquipo(Equipo);
-                    
-                    ListaEquipos_Torneo.ItemsSource = await ItemTorneo.bTorneo.MisEquiposDisponibles();
-                    ListaEquipos_Zona.ItemsSource = await ItemZona.bZona.MisEquiposListaEquipos();
-                }
-                else
-                    await DisplayAlert("Mensaje", "No se puede eliminar, es cabeza de serie o ya tiene partidos asignados", "Ok");
             }
             catch (Exception Ex)
             {

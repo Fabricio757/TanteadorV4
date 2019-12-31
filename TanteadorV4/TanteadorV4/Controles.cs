@@ -202,7 +202,7 @@ namespace TanteadorV4
 
                 if (P.IdEquipo2 > 0)
                 {
-                    E = await BI.Equipos.LoadxID(P.IdEquipo2);
+                    E = await BI.Equipos.LoadxPK(P.IdEquipo2);
                     NombrePartido = E.Nombre;
                 }
                 else
@@ -210,7 +210,7 @@ namespace TanteadorV4
 
                 if (P.IdEquipo1 > 0)
                 {
-                    E = await BI.Equipos.LoadxID(P.IdEquipo1);
+                    E = await BI.Equipos.LoadxPK(P.IdEquipo1);
                     NombrePartido = E.Nombre;
                 }
                 else
@@ -232,13 +232,14 @@ namespace TanteadorV4
         public async void GenerarLlave(int IdTorneo)
         {
             int t = 1;
-            BiTorneos Torneo = new BiTorneos();
-            Torneo.Objeto.ID = IdTorneo;
-            await Torneo.pTorneo.Load();
 
-            int Clasificados = Torneo.pTorneo.oTorneo.CantidadClasificadosXZona;
-                        
-            List<ObjZonas> Zonas = await Torneo.MisZonas(0);
+            ObjTorneos Torneo = await SqlPersist.Torneos.LoadxPk(IdTorneo);
+            
+
+            int Clasificados = Torneo.CantidadClasificadosXZona;
+
+            BI.Torneos.oTorneo = Torneo;
+            List<ObjZonas> Zonas = await BI.Torneos.MisZonas(0);
             int CantidadZonas = Zonas.Count;
             
 
@@ -273,14 +274,14 @@ namespace TanteadorV4
                     ZonaNueva.IdZ2 = Z2.ID;
                     ZonaNueva.PosicionZ2 = Clasificados - j;
 
-                    ZonaNueva.IdTorneo = Torneo.Objeto.ID;
+                    ZonaNueva.IdTorneo = Torneo.ID;
                     ZonaNueva.esLLave = true;
                     ZonaNueva.NivelLLave = 1;
 
                     ZonaNueva.Nombre = "Nivel 1 Nro: " + t.ToString() + " " + Z1.Nombre + " (" + (j+1).ToString() + ") " + Z2.Nombre + " (" + (Clasificados - j).ToString() + ")";
 
                     vZonas.Objeto = ZonaNueva;
-                    vZonas.GuardarItem(EnumOperacion.Nuevo);
+                    await vZonas.GuardarItem(EnumOperacion.Nuevo);
                     t++;
                 }
             }
@@ -289,7 +290,8 @@ namespace TanteadorV4
             // LOS DEMÁS NIVELES
             string descNivel = "Nivel";
             int Nivel = 1;
-            Zonas = await Torneo.MisZonas(Nivel);
+            BI.Torneos.oTorneo = Torneo;
+            Zonas = await BI.Torneos.MisZonas(Nivel);
             CantidadZonas = Zonas.Count;
             int CantidadNiveles = (int)Math.Ceiling(Math.Sqrt(CantidadZonas));
 
@@ -312,7 +314,7 @@ namespace TanteadorV4
                     ZonaNueva.IdZ2 = Z2.ID;
                     ZonaNueva.PosicionZ2 = 1;
 
-                    ZonaNueva.IdTorneo = Torneo.Objeto.ID;
+                    ZonaNueva.IdTorneo = Torneo.ID;
                     ZonaNueva.esLLave = true;
                     ZonaNueva.NivelLLave = Nivel + 1;
 
@@ -328,13 +330,14 @@ namespace TanteadorV4
                     ZonaNueva.Nombre = descNivel + " " + (Nivel + 1).ToString() + " Nro: " + t.ToString() + "  [" + Z1.Nombre.Substring(13,2) + " - " + Z2.Nombre.Substring(13, 2) + "]";
 
                     vZonas.Objeto = ZonaNueva;
-                    vZonas.GuardarItem(EnumOperacion.Nuevo);
+                    await vZonas.GuardarItem(EnumOperacion.Nuevo);
                     t++;
                 }
 
 
                 Nivel++;
-                Zonas = await Torneo.MisZonas(Nivel);
+                BI.Torneos.oTorneo = Torneo;
+                Zonas = await BI.Torneos.MisZonas(Nivel);
                 CantidadZonas = Zonas.Count;
             }
 

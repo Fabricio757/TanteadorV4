@@ -88,12 +88,10 @@ namespace TanteadorV4
             return null;
         }
 
-        public virtual async Task<Boolean> Load()
+        public virtual async Task<ObjId> LoadxPk(int Id)
         {
-                return false;
+            return null;
         }
-
-
 
         public void ObjetoToParametros(Type myType, ObjId p_objTipo)
         {//Carga la lista de propiedades del objeto en la lista de parametros para realizar el query
@@ -216,18 +214,10 @@ namespace TanteadorV4
             Objeto = new ObjTorneos();
         }
 
-        public override async Task<Boolean> Load()
+        public new async Task<ObjTorneos> LoadxPk(int Id)
         {
-            try
-            {
-                Objeto = await database.GetAsync<ObjTorneos>(Objeto.ID);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-                return false;
-            }
+            this.oTorneo = await database.GetAsync<ObjTorneos>(Id);
+            return this.oTorneo;
         }
 
         public override async Task<List<ObjId>> GetItemsAsync()
@@ -299,17 +289,10 @@ namespace TanteadorV4
             Objeto = new ObjZonas();
         }
 
-        public override async Task<Boolean> Load()
+        public new async Task<ObjZonas> LoadxPk(int Id)
         {
-            try
-            {
-                Objeto = await database.GetAsync<ObjZonas>(Objeto.ID);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            this.oZona = await database.GetAsync<ObjZonas>(Id);
+            return this.oZona;
         }
 
         public override async Task<List<ObjId>> GetItemsAsync()
@@ -350,18 +333,10 @@ namespace TanteadorV4
             return Resultado;
         }
 
-
-        public override async Task<Boolean> Load()
+        public new async Task<ObjEquipos> LoadxPk(int Id)
         {
-            try
-            {
-                Objeto = await database.GetAsync<ObjEquipos>(Objeto.ID);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            this.oEquipo = await database.GetAsync<ObjEquipos>(Id);
+            return this.oEquipo;
         }
 
         public async Task<List<ObjEquipos>> GetEquiposAsync(string addQryString = "")
@@ -423,7 +398,7 @@ namespace TanteadorV4
             return R;
         }
 
-        public override async Task<Boolean> Load()
+        /*public async Task<Boolean> Load()
         {
             try
             {
@@ -435,6 +410,14 @@ namespace TanteadorV4
             {
                 return false;
             }
+        }*/
+
+        public async Task<ObjListaEquipos> LoadxPk(int IdEquipo, int IdZona)
+        {
+            string strSql = "SELECT * FROM ListaEquipos WHERE IdEquipo = ? and IdZona = ?";
+            IList<ObjListaEquipos> Lista = await database.QueryAsync<ObjListaEquipos>(strSql, new object[] { IdEquipo, IdZona });
+            oListaEquipos = Lista[0];
+            return oListaEquipos;
         }
 
         public Task<int> UpdateItemAsync(ObjListaEquipos item)
@@ -443,10 +426,11 @@ namespace TanteadorV4
             //return database.UpdateAsync(item);
         }
 
-        public Task<int> DeleteItemListaEquipo(ObjListaEquipos item)
+        public Task<int> DeleteItemListaEquipo(int IdEquipo, int IdZona)
         {
-            database.ExecuteAsync("UPDATE ObjEquipos SET IdZona = null WHERE Id = " + item.IdEquipo.ToString());
-            return database.ExecuteAsync("DELETE FROM [ListaEquipos] WHERE [IdEquipo] = " + item.IdEquipo.ToString() + " and [IdZona] = " + item.IdZona.ToString());
+            //database.ExecuteAsync("UPDATE ObjEquipos SET IdZona = null WHERE Id = " + item.IdEquipo.ToString());
+            String sqlText = "DELETE FROM ListaEquipos WHERE IdEquipo = ? and IdZona = ? ";// + item.IdEquipo.ToString() + " and [IdZona] = " + item.IdZona.ToString());
+            return database.ExecuteAsync(sqlText, new object[] { IdEquipo, IdZona });            
         }
 
         public Task<int> InsertItemAsync(ObjListaEquipos item)
@@ -466,17 +450,10 @@ namespace TanteadorV4
             Objeto = new ObjPartidos();
         }
 
-        public override async Task<Boolean> Load()
+        public new async Task<ObjPartidos> LoadxPk(int Id)
         {
-            try
-            {
-                Objeto = await database.GetAsync<ObjPartidos>(Objeto.ID);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            this.oPartido = await database.GetAsync<ObjPartidos>(Id);
+            return this.oPartido;
         }
 
         public override async Task<List<ObjId>> GetItemsAsync()
@@ -516,20 +493,15 @@ namespace TanteadorV4
             return Resultado;
         }
 
-        public override async Task<Boolean> Load()
+        public new async Task<ObjJugadores> LoadxPk(int Id)
         {
-            try
-            {
-                Objeto = await database.GetAsync<ObjJugadores>(Objeto.ID);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            oJugadores = await database.GetAsync<ObjJugadores>(Id);
+            return oJugadores;
         }
 
     }
+
+
 
     #endregion
 

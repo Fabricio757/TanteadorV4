@@ -5,10 +5,25 @@
              xmlns:controls="clr-namespace:ImageCircle.Forms.Plugin.Abstractions;assembly=ImageCircle.Forms.Plugin"
              xmlns:local="clr-namespace:TanteadorV4;assembly=TanteadorV4"
              xmlns:tanteadorv4="clr-namespace:TanteadorV4"
+             NavigationPage.HasNavigationBar="false"
              xmlns:tt="clr-namespace:TouchTracking"
              
              x:Class="TanteadorV4.Tanteador">
-
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="style_btn" TargetType="Button">
+                <Setter Property="Font"         Value = "Hind" />
+                <Setter Property="FontSize"         Value = "12" />
+                <Setter Property="TextColor"    Value = "Red"/>
+                <Setter Property="Margin"       Value = "0,20,0,0"/>
+                <Setter Property="BackgroundColor"  Value ="#3498db"/>
+                <Setter Property="BorderWidth"  Value ="0"/>
+                <Setter Property="BorderWidth"  Value ="0"/>
+                <Setter Property="HorizontalOptions"  Value ="Center"/>
+                <Setter Property="WidthRequest"  Value ="250"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <AbsoluteLayout BackgroundColor="Blue">
 

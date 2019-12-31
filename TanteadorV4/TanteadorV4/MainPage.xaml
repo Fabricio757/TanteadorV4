@@ -11,8 +11,8 @@
 
         <Entry x:Name="entry" Grid.Column="0" Grid.Row="0"></Entry>
         <controls:CircleImage x:Name="image1"  Grid.Row="0" Source="" BackgroundColor="Blue" BorderThickness="3" BorderColor="#9B9B9B" WidthRequest="80" HeightRequest="80" />
-      <Button Clicked="Button_Clicked"></Button>
-      <Button Clicked="Button2_Clicked"></Button>
+        <Button Clicked="Button_Clicked" Text="Tanteador"></Button>
+        <Button Clicked="Button2_Clicked" Text="Torneos"></Button>
       
     </StackLayout>
 
