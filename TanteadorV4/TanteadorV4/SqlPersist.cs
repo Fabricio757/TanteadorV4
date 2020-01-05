@@ -175,7 +175,7 @@ namespace TanteadorV4
         {
             try
             {
-                string sqlQ = "select E.* from Equipos E inner join ListaEquipos L on L.IdEquipo = E.Id  " + ArmarParametros() + " " + addQryString;
+                string sqlQ = "select distinct E.* from Equipos E inner join ListaEquipos L on L.IdEquipo = E.Id  " + ArmarParametros() + " " + addQryString;
                 var Resultado = database.QueryAsync<ObjEquipos>(sqlQ, ValoresParametros);
 
                 return Resultado;
@@ -363,6 +363,7 @@ namespace TanteadorV4
 
             string sqlQ = "select count(1) from Partidos P where Finalizado = 1 and IdZona = ? ";
             sqlQ = sqlQ + " and (IdEquipo1= ? and GolesEquipo1 = GolesEquipo2 or IdEquipo2 = ? and GolesEquipo1 = GolesEquipo2)";
+            sqlQ = sqlQ + " and (IdEquipo1 > 0 and IdEquipo2 > 0)"; //Si son Fecha Libre, no se concidera como empate
 
             int Resultado = await database.ExecuteScalarAsync<int>(sqlQ, new object[] { IdZona, oEquipo.ID, oEquipo.ID });
 
@@ -586,7 +587,7 @@ namespace TanteadorV4
         public int GolesEquipo1 { get; set; }
         public int GolesEquipo2 { get; set; }
         public int IdZona { get; set; }
-        public string PartidoRevancha { get; set; }
+        public Boolean PartidoRevancha { get; set; }
         public DateTime Reloj { get; set; }
         public Boolean Finalizado { get; set; }
     }

@@ -172,6 +172,12 @@ namespace TanteadorV4
             return await SqlPersist.Zonas.GetZonasAsync();
         }
 
+        public async Task<List<ObjZonas>> MisZonas_Z1(int IdZona)
+        {
+            SqlPersist.Zonas.AddParametro_Only("IdZ1", IdZona);
+            return await SqlPersist.Zonas.GetZonasAsync();
+        }
+
         public async Task<Boolean> TienePartidos()
         {
             List<ObjPartidos> L = await this.MisPartidos();
@@ -311,11 +317,12 @@ namespace TanteadorV4
         }
 
         public async Task<List<ObjPartidos>> MisPartidos()
-        {
+        {/*
             string[] N = { "IdZona" };
             Object[] V = { ((ObjZonas)Objeto).ID };
-            SqlPersist.Equipos.AddParametros(N, V);
+            SqlPersist.Equipos.AddParametros(N, V);*/
 
+            SqlPersist.Partidos.AddParametro_Only("IdZona", ((ObjZonas)Objeto).ID);
             return await SqlPersist.Partidos.GetPartidosAsync();
         }
 
@@ -337,7 +344,10 @@ namespace TanteadorV4
             List<ObjEquipos> ListaDeEquipos = new List<ObjEquipos>();
 
             ObjTorneos Torneo = await SqlPersist.Torneos.LoadxPk(this.oZona.IdTorneo);
-            int CantidadClasificados = Torneo.CantidadClasificadosXZona;
+
+            int CantidadClasificados = 1;
+            if (oZona.NivelLLave == 0)
+                CantidadClasificados = Torneo.CantidadClasificadosXZona;
 
             SqlPersist.JOIN.AddParametro_Only("L.IdZona", ((ObjZonas)Objeto).ID);
             List<ObjEquipoListaEquipos> Lista = await SqlPersist.JOIN.GetEquiposListaEquiposAsync(" order by Puntos Desc");
@@ -353,8 +363,8 @@ namespace TanteadorV4
         public async Task<Boolean> CompletarZona_yPartidos(ObjZonas Zona)
         { /* Para cada Zona "llave", arma la lista de Equipos y los partidos*/
 
-            //Primero Borro los Equipos asignados y sus partidos            
-            
+            //Primero Borro los Equipos asignados y sus partidos. por si voy a modicar           
+            /*
             BI.Zonas.oZona = Zona;
             List<ObjPartidos> ListaPartidos = await BI.Zonas.MisPartidos();
             foreach (ObjPartidos P in ListaPartidos)
@@ -366,82 +376,68 @@ namespace TanteadorV4
             List<ObjEquipos> ListaEquipos = await BI.Zonas.MisEquipos();
             foreach (ObjEquipos E in ListaEquipos)
             {
-                BI.Equipos.oEquipo = E;
-                await BI.Equipos.DeleteItem();
-            }
+                await SqlPersist.ListaEquipos.DeleteItemListaEquipo(E.ID, Zona.ID);
+            }*/
+
+            ObjListaEquipos itemEquipoLista;
 
             //---------------------------
-            //  Busco el primer Equipo
-            ObjZonas Z1 = await BI.Zonas.LoadxPK(Zona.IdZ1);
+            //  Busco el Equipo1
+            int IdZ1 = (Zona.IdZ1 == 0 ? Zona.IdZ2 : Zona.IdZ1);
+            
+            ObjZonas Z1 = await SqlPersist.Zonas.LoadxPk(IdZ1);
             BI.Zonas.oZona = Z1;
             List<ObjEquipos> EquiposClasificados = await BI.Zonas.MisEquiposClasificados();
+            ObjEquipos Equipo1 = ((ObjEquipos)EquiposClasificados[Zona.PosicionZ1 - 1]);
 
-            ObjListaEquipos itemEquipoLista = new ObjListaEquipos();
-            itemEquipoLista.IdEquipo = ((ObjEquipos)EquiposClasificados[Zona.PosicionZ1 - 1]).ID;
-            itemEquipoLista.IdZona = Zona.ID;
-            itemEquipoLista.Puntos = 0;
-
-            await BI.ListaEquipos.AddEquipo(itemEquipoLista);
-
+            //Doy de alta en la lista
+            if (Zona.IdZ1 != 0)
+            {
+                itemEquipoLista = new ObjListaEquipos();
+                itemEquipoLista.IdEquipo = Equipo1.ID;
+                itemEquipoLista.IdZona = Zona.ID;
+                itemEquipoLista.Puntos = 0;
+                await BI.ListaEquipos.AddEquipo(itemEquipoLista);
+            }         
             //Modifico la zona del Equipo
-            ObjEquipos Equipo = await BI.Equipos.LoadxPK(itemEquipoLista.IdEquipo);
-            Equipo.IdZona = Zona.ID;
-            await SqlPersist.Equipos.UpdateItemAsync(Equipo);
-            //await BI.Equipos.GuardarItem(EnumOperacion.Actualiza);
+            Equipo1.IdZona = Zona.ID;
+            await SqlPersist.Equipos.UpdateItemAsync(Equipo1);
 
-            int IdEquipo1 = itemEquipoLista.IdEquipo;
 
             //---------------------
-            // El otro Equipo
-            ObjZonas Z2 = await BI.Zonas.LoadxPK(Zona.IdZ2);
-            BI.Zonas.oZona = Z2;
-            EquiposClasificados = await BI.Zonas.MisEquiposClasificados();
+            //  Busco el Equipo2
+            int IdZ2 = (Zona.IdZ2 == 0 ? Zona.IdZ1 : Zona.IdZ2);
+            ObjEquipos Equipo2 = null;
+            //Doy de alta en la lista
+            if (Zona.IdZ2 != 0)
+            {
+                ObjZonas Z2 = await SqlPersist.Zonas.LoadxPk(IdZ2);
+                BI.Zonas.oZona = Z2;
+                EquiposClasificados = await BI.Zonas.MisEquiposClasificados();
+                Equipo2 = ((ObjEquipos)EquiposClasificados[Zona.PosicionZ2 - 1]);
 
-            itemEquipoLista = new ObjListaEquipos();
-            itemEquipoLista.IdEquipo = ((ObjEquipos)EquiposClasificados[Zona.PosicionZ2 - 1]).ID;
-            itemEquipoLista.IdZona = Zona.ID;
-            itemEquipoLista.Puntos = 0;
+                itemEquipoLista = new ObjListaEquipos();
+                itemEquipoLista.IdEquipo = Equipo2.ID;
+                itemEquipoLista.IdZona = Zona.ID;
+                itemEquipoLista.Puntos = 0;
+                await BI.ListaEquipos.AddEquipo(itemEquipoLista);
 
-            await BI.ListaEquipos.AddEquipo(itemEquipoLista);
+                //Modifico la zona del Equipo
+                Equipo2.IdZona = Zona.ID;
+                await SqlPersist.Equipos.UpdateItemAsync(Equipo2);
+            }
+            else
+                Equipo2 = Equipo1;
 
-            //Modifico la zona del Equipo
-            ObjEquipos Equipo2 = await BI.Equipos.LoadxPK(itemEquipoLista.IdEquipo);
-            Equipo2.IdZona = Zona.ID;
-            await SqlPersist.Equipos.UpdateItemAsync(Equipo2);
-
-            int IdEquipo2 = itemEquipoLista.IdEquipo;
-
-            /*
-
-            vmZona.oZona.ID = Zona.IdZ2;
-            await vmZona.Load();
-            EquiposClasificados = await vmZona.MisEquiposClasificados();
-
-            itemEquipoLista = new ObjListaEquipos();
-            itemEquipoLista.IdEquipo = (EquiposClasificados[Zona.PosicionZ2 - 1]).ID;
-            itemEquipoLista.IdZona = Zona.ID;
-            itemEquipoLista.Puntos = 0;
-
-            await vmListaEquipos.AddEquipo(itemEquipoLista);
-
-            //Modifico la zona del Equipo
-            vmEquipo = new VmEquipos();
-            vmEquipo.oEquipo.ID = itemEquipoLista.IdEquipo;
-            await vmEquipo.Load();
-            vmEquipo.oEquipo.IdZona = Zona.ID;
-            await vmEquipo.GuardarItem(EnumOperacion.Actualiza);
-
-            int IdEquipo2 = itemEquipoLista.IdEquipo;*/
-            //---------------------
-
+            //-------------------------------------
             // Crear partido
             ObjPartidos Partido = new ObjPartidos();
-            Partido.IdEquipo1 = IdEquipo1;
-            Partido.IdEquipo2 = IdEquipo2;
+            Partido.IdEquipo1 = Equipo1.ID;
+            Partido.IdEquipo2 = Equipo2.ID;
             Partido.IdZona = Zona.ID;
 
            
-            string NombrePartido = Equipo.Nombre + " vs " + Equipo2.Nombre;
+            string NombrePartido = Equipo1.Nombre + " vs " + Equipo2.Nombre;
 
             Partido.Nombre = NombrePartido;
             await SqlPersist.Partidos.InsertItemAsync(Partido);
